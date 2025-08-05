@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
 
-import { Zap, Settings, Layers, MessageSquare, User } from 'lucide-react';
 import { Clipboard } from '@/components/clipboard';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
-import { usePostHog } from 'posthog-js/react';
-import { useState, useEffect } from 'react';
+import { Brain, Code2, MessageSquare, Palette, Settings, User, Zap } from 'lucide-react';
 import Image from 'next/image';
+import { usePostHog } from 'posthog-js/react';
+import { useEffect, useState } from 'react';
 import AdobeLogo from './_components/company_logos/adobe.png';
 import AirBnBLogo from './_components/company_logos/airbnb.png';
 import AmazonLogo from './_components/company_logos/amazon.png';
@@ -14,20 +14,20 @@ import MicrosoftLogo from './_components/company_logos/microsoft.png';
 import OracleLogo from './_components/company_logos/oracle.png';
 import SamsungLogo from './_components/company_logos/samsung.png';
 import ZendeskLogo from './_components/company_logos/zendesk.png';
+import AngularLogo from './_components/plugin_logos/angular.svg';
 import ReactLogo from './_components/plugin_logos/react.svg';
 import VueLogo from './_components/plugin_logos/vue.svg';
-import AngularLogo from './_components/plugin_logos/angular.svg';
 
-import CursorLogo from './_components/ide_logos/cursor.png';
-import WindsurfLogo from './_components/ide_logos/windsurf.png';
-import GitHubCopilotLogo from './_components/ide_logos/github_copilot.png';
-import TraeLogo from './_components/ide_logos/trae.png';
-import ReactFrameworkLogo from './_components/framework_logos/react.png';
-import VueFrameworkLogo from './_components/framework_logos/vue.png';
 import AngularFrameworkLogo from './_components/framework_logos/angular.png';
-import SvelteFrameworkLogo from './_components/framework_logos/svelte.png';
 import NextFrameworkLogo from './_components/framework_logos/next.png';
 import NuxtFrameworkLogo from './_components/framework_logos/nuxt.png';
+import ReactFrameworkLogo from './_components/framework_logos/react.png';
+import SvelteFrameworkLogo from './_components/framework_logos/svelte.png';
+import VueFrameworkLogo from './_components/framework_logos/vue.png';
+import CursorLogo from './_components/ide_logos/cursor.png';
+import GitHubCopilotLogo from './_components/ide_logos/github_copilot.png';
+import TraeLogo from './_components/ide_logos/trae.png';
+import WindsurfLogo from './_components/ide_logos/windsurf.png';
 
 // GradientStarIcon: Star with gradient fill using mask
 function StarIcon({ className = '' }: { className?: string }) {
@@ -256,50 +256,67 @@ export default function Home() {
           </div>
         </ScrollReveal>
 
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-rows-2">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
-              icon: <Layers className="size-6 text-violet-600" />,
-              title: 'Understands Your Website',
+              icon: <Brain className="size-6 text-violet-600" />,
+              title: 'AI-Powered Intelligence',
               description:
-                'Analyzes DOM structure, styles, and components to provide contextually aware suggestions and modifications',
+                'Leverages advanced AI to understand your codebase structure and provide intelligent suggestions',
               delay: 100,
-              size: 'large', // spans 2 columns on lg
+              size: 'normal',
               iconBg: 'bg-violet-50 dark:bg-violet-950/20',
             },
             {
               icon: <Zap className="size-6 text-yellow-500" />,
-              title: 'Smart Styling Choices',
+              title: 'Lightning Fast',
               description:
-                'Makes intelligent design decisions based on your existing design system and patterns',
+                'Instant feedback and real-time updates that keep your development workflow smooth and efficient',
               delay: 200,
               size: 'normal',
               iconBg: 'bg-yellow-50 dark:bg-yellow-950/20',
             },
             {
+              icon: <Code2 className="size-6 text-blue-600" />,
+              title: 'Smart Code Generation',
+              description:
+                'Generates clean, maintainable code that follows your project conventions and best practices',
+              delay: 300,
+              size: 'normal',
+              iconBg: 'bg-blue-50 dark:bg-blue-950/20',
+            },
+            {
+              icon: <Palette className="size-6 text-pink-600" />,
+              title: 'Design System Aware',
+              description:
+                'Automatically detects and applies your design tokens, themes, and styling patterns',
+              delay: 400,
+              size: 'normal',
+              iconBg: 'bg-pink-50 dark:bg-pink-950/20',
+            },
+            {
               icon: <Settings className="size-6 text-green-600" />,
               title: 'Framework Agnostic',
               description:
-                'Works seamlessly with React, Vue, Angular, Next.js, and any web framework',
-              delay: 300,
+                'Works seamlessly with React, Vue, Angular, Next.js, and any modern web framework',
+              delay: 500,
               size: 'normal',
               iconBg: 'bg-green-50 dark:bg-green-950/20',
             },
             {
-              icon: <MessageSquare className="size-6 text-blue-600" />,
+              icon: <MessageSquare className="size-6 text-orange-600" />,
               title: 'Visual Development',
               description:
                 'Comment directly on live elements, see changes instantly, and iterate faster than ever',
-              delay: 400,
-              size: 'large', // spans 2 columns on lg
-              iconBg: 'bg-blue-50 dark:bg-blue-950/20',
+              delay: 600,
+              size: 'normal',
+              iconBg: 'bg-orange-50 dark:bg-orange-950/20',
             },
           ].map((feature, _i) => (
             <ScrollReveal key={feature.title} delay={feature.delay}>
               <div
-                className={`group -translate-y-1 h-full rounded-2xl border border-zinc-500/20 bg-white p-6 shadow-2xl shadow-[rgba(0,0,0,0.15)] transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900 ${
-                  feature.size === 'large' ? 'lg:col-span-2' : ''
-                }`}
+                className={`group -translate-y-1 h-full rounded-2xl border border-zinc-500/20 bg-white p-6 shadow-2xl shadow-[rgba(0,0,0,0.15)] transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900 ${feature.size === 'large' ? 'lg:col-span-2' : ''
+                  }`}
               >
                 <div
                   className={`mb-4 inline-flex rounded-lg p-3 transition-colors ${feature.iconBg}`}
@@ -533,7 +550,7 @@ export default function Home() {
               title: 'Vue',
               description:
                 'Get more accurate prompts with info on selected Vue components.',
-              delay: 300,
+              delay: 200,
             },
             {
               icon: (
@@ -541,7 +558,25 @@ export default function Home() {
               ),
               title: 'Angular',
               description: 'First-class support for Angular apps.',
+              delay: 300,
+            },
+            {
+              icon: <Image src={NextFrameworkLogo} alt="Next.js" className="size-8 dark:invert" />,
+              title: 'Next.js',
+              description: 'Enhanced development experience for Next.js applications.',
+              delay: 400,
+            },
+            {
+              icon: <Image src={NuxtFrameworkLogo} alt="Nuxt" className="size-8" />,
+              title: 'Nuxt',
+              description: 'Streamlined workflow for Nuxt.js projects.',
               delay: 500,
+            },
+            {
+              icon: <Image src={SvelteFrameworkLogo} alt="Svelte" className="size-8" />,
+              title: 'Svelte',
+              description: 'Optimized prompts for Svelte and SvelteKit apps.',
+              delay: 600,
             },
           ].map((feature, _i) => (
             <ScrollReveal key={feature.title} delay={feature.delay}>
