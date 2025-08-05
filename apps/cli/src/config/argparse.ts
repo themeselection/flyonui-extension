@@ -47,12 +47,7 @@ program
     process.cwd(),
   )
   .option('-s, --silent', 'Will not request user input or guide through setup')
-  .option('-v, --verbose', 'Output debug information to the CLI')
-  .option(
-    '-t, --token <token>',
-    'If set, will use the given auth token instead of using or asked for a stored one',
-  )
-  .option('-b', 'Bridge mode - will not start the coding agent server');
+  .option('-v, --verbose', 'Output debug information to the CLI');
 
 // Add auth command with subcommands
 const authCommand = program
@@ -126,19 +121,6 @@ if (doubleDashIndex !== -1) {
   wrappedCommand = rawArgs.slice(doubleDashIndex + 1);
 }
 
-const _hasWorkspaceArg =
-  stagewiseArgs.includes('-w') || stagewiseArgs.includes('--workspace');
-const hasTokenArg =
-  stagewiseArgs.includes('-t') || stagewiseArgs.includes('--token');
-const hasBridgeMode = stagewiseArgs.includes('-b');
-
-// Validate bridge mode conflicts before parsing (to avoid path validation)
-if (hasBridgeMode && hasTokenArg) {
-  console.error(
-    'Bridge mode (-b) is incompatible with token (-t) configuration',
-  );
-  process.exit(1);
-}
 
 // Parse with Commander using only stagewise args
 program.parse([...process.argv.slice(0, 2), ...stagewiseArgs]);
@@ -164,7 +146,7 @@ if (commandExecuted === 'auth' || commandExecuted === 'telemetry') {
   silent = false;
   verbose = false;
   token = undefined;
-  bridgeMode = false;
+  bridgeMode = true;
 } else {
   const {
     port: parsedPort,
@@ -173,7 +155,6 @@ if (commandExecuted === 'auth' || commandExecuted === 'telemetry') {
     silent: parsedSilent,
     verbose: parsedVerbose,
     token: parsedToken,
-    b: parsedBridgeMode,
   } = options as {
     port?: number;
     appPort?: number;
@@ -181,13 +162,7 @@ if (commandExecuted === 'auth' || commandExecuted === 'telemetry') {
     silent: boolean;
     verbose: boolean;
     token?: string;
-    b: boolean;
   };
-
-  // Validate port conflicts
-  if (!parsedBridgeMode && parsedAppPort && parsedPort === parsedAppPort) {
-    throw new Error('port and app-port cannot be the same');
-  }
 
   port = parsedPort;
   appPort = parsedAppPort;
@@ -195,23 +170,13 @@ if (commandExecuted === 'auth' || commandExecuted === 'telemetry') {
   silent = parsedSilent;
   verbose = parsedVerbose;
   token = parsedToken;
-  bridgeMode = parsedBridgeMode;
+  bridgeMode = true; // Always run in bridge mode
 }
 
 // Export the parsed values
 export {
-  port,
-  appPort,
-  workspace,
-  silent,
-  verbose,
-  token,
-  bridgeMode,
-  commandExecuted,
-  authSubcommand,
-  telemetrySubcommand,
-  wrappedCommand,
-  hasWrappedCommand,
+  appPort, authSubcommand, bridgeMode,
+  commandExecuted, hasWrappedCommand, port, silent, telemetrySubcommand, token, verbose, workspace, wrappedCommand
 };
 
 // Export telemetry level if set command was used
