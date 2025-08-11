@@ -6,3 +6,5 @@ packages:
 - toolbar/*
 - plugins/*
 - agent/*
+- my-plugin
+- my-plugin/*

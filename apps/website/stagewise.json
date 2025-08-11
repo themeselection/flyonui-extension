@@ -2,5 +2,10 @@
   "port": 3100,
   "appPort": 3000,
   "autoPlugins": true,
-  "plugins": []
+  "plugins": [
+    {
+      "name": "my-plugin",
+      "path": "/Users/clevision/clevision/extra/flyonui-extension/my-plugin/dist"
+    }
+  ]
 }

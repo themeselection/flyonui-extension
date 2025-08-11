@@ -1,17 +1,17 @@
+import { oauthManager } from '../auth/oauth';
+import { tokenManager } from '../auth/token-manager';
+import { configureLogger, log } from '../utils/logger';
+import { analyticsEvents, telemetryManager } from '../utils/telemetry';
+import { promptConfirm, promptNumber } from '../utils/user-input';
 import * as args from './argparse';
-import type { Config, ConfigFile } from './types';
 import {
+  CONFIG_FILE_NAME,
+  configFileExists,
   loadConfigFile,
   saveConfigFile,
-  configFileExists,
-  CONFIG_FILE_NAME,
   type ConfigLoadError,
 } from './config-file';
-import { promptNumber, promptConfirm } from '../utils/user-input';
-import { log, configureLogger } from '../utils/logger';
-import { tokenManager } from '../auth/token-manager';
-import { oauthManager } from '../auth/oauth';
-import { analyticsEvents, telemetryManager } from '../utils/telemetry';
+import type { Config, ConfigFile } from './types';
 
 export class ConfigResolver {
   private config: Config | null = null;
@@ -90,7 +90,12 @@ export class ConfigResolver {
         token: undefined,
         bridgeMode: true,
         autoPlugins: false, // Disabled in bridge mode
-        plugins: [],
+        plugins: [
+          {
+            name: 'my-plugin',
+            path: '/Users/clevision/clevision/extra/flyonui-extension/my-plugin/dist',
+          },
+        ],
       };
 
       return this.config;

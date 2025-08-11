@@ -153,13 +153,13 @@ export default function Home() {
                 </a>
               </div>
               <h1 className="mb-6 font-bold text-3xl tracking-tight md:text-5xl">
-                <span className="bg-gradient-to-tr from-zinc-900 via-zinc-700 to-black bg-clip-text text-transparent dark:from-zinc-100 dark:via-zinc-300 dark:to-white">
+                <span className="bg-gradient-to-tr from-zinc-900 via-zinc-700 to-black bg-clip-text text-transparent dark:from-zinc-100 dark:via-zinc-300 dark:to-white font-extrabold text-6xl md:text-7xl">
                   The frontend coding agent for
                   <br />
                   production codebases
                 </span>
               </h1>
-              <p className="mx-auto mb-8 max-w-3xl text-center text-lg text-zinc-600 dark:text-zinc-400">
+              <p className="mx-auto mb-8 max-w-3xl text-center text-2xl font-bold text-zinc-700 dark:text-zinc-200">
                 stagewise runs locally, lives inside your browser and let's you
                 build app frontends simply by selecting elements and prompting
                 changes.
