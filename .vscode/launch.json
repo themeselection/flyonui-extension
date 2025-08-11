@@ -7,7 +7,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode-extension",
-        "${workspaceFolder}/apps/website/"
+        "${workspaceFolder}/examples/svelte-kit-example/"
       ],
       "outFiles": ["${workspaceFolder}/apps/vscode-extension/out/**/*.js"],
       "preLaunchTask": "Build Extension: vscode-extension",

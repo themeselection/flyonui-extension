@@ -90,12 +90,7 @@ export class ConfigResolver {
         token: undefined,
         bridgeMode: true,
         autoPlugins: false, // Disabled in bridge mode
-        plugins: [
-          {
-            name: 'my-plugin',
-            path: '/Users/clevision/clevision/extra/flyonui-extension/my-plugin/dist',
-          },
-        ],
+        plugins: [],
       };
 
       return this.config;
