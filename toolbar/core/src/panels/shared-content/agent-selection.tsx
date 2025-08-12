@@ -12,6 +12,7 @@ export function AgentSelection({
     availableAgents,
     connectAgent,
     isAppHostedAgent,
+    refreshAgentList,
   } = useAgents();
 
   const handleAgentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -19,6 +20,11 @@ export function AgentSelection({
     if (port) {
       connectAgent(port);
     }
+  };
+
+  const handleRefresh = () => {
+    if (isRefreshing) return; // Prevent multiple refreshes
+    return refreshAgentList();
   };
 
   // Use stable placeholder text that doesn't change during refresh to prevent layout shifts
@@ -59,6 +65,12 @@ export function AgentSelection({
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <button type="button" onClick={handleRefresh} disabled={isRefreshing}>
+          Refresh
+        </button>
       </div>
 
       {connected && showConnectedDetails && (

@@ -1,26 +1,29 @@
-import {
-  Panel,
-  PanelContent,
-  PanelFooter,
-  PanelHeader,
-} from '@/components/ui/panel';
-import { AgentSelection } from './shared-content/agent-selection';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuButton,
   DropdownMenuContent,
   DropdownMenuLinkItem,
 } from '@/components/ui/dropdown-menu';
+import {
+  Panel,
+  PanelContent,
+  PanelFooter,
+  PanelHeader,
+} from '@/components/ui/panel';
 import { MessageCircleQuestionMarkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AgentSelection } from './shared-content/agent-selection';
 
 export function SettingsPanel() {
   return (
     <Panel>
-      <PanelHeader title="Settings" />
+      <PanelHeader title="Preference" />
       <PanelContent>
-        <AgentSelection showConnectedDetails />
+        <div className="space-y-6">
+          <AgentSelection showConnectedDetails />
+        </div>
       </PanelContent>
+
       <PanelFooter>
         <DropdownMenu>
           <DropdownMenuButton>
