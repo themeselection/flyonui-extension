@@ -1,6 +1,5 @@
 // This component manages the main layout of the companion UI. It is responsible for rendering the toolbar, the main content area, and the sidebar.
 
-import { cn } from '@/utils';
 import { DOMContextSelector } from '@/components/dom-context-selector/selector-canvas';
 import { ContextChipHoverProvider } from '@/hooks/use-context-chip-hover';
 import {
@@ -8,13 +7,14 @@ import {
   DraggableProvider,
   useDraggable,
 } from '@/hooks/use-draggable';
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { Toolbar } from '@/toolbar';
 import { usePanels } from '@/hooks/use-panels';
-import { SettingsPanel } from '@/panels/settings';
-import { ChatPanel } from '@/panels/chat';
-import { AgentConnectivityPanel } from '@/panels/agent-connectivity';
 import { usePlugins } from '@/hooks/use-plugins';
+import { AgentConnectivityPanel } from '@/panels/agent-connectivity';
+import { ChatPanel } from '@/panels/chat';
+import { SettingsPanel } from '@/panels/settings';
+import { Toolbar } from '@/toolbar';
+import { cn } from '@/utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const TOOLBAR_POSITION_KEY = 'stagewise_toolbar_toolbar_position';
 
@@ -95,18 +95,69 @@ function DraggingArea() {
  * This component hosts the toolbar and panel area
  */
 function ToolbarAndPanelArea() {
+  const [currentSnapArea, setCurrentSnapArea] = useState<
+    keyof DraggableContextType['snapAreas'] | null
+  >(() => {
+    return getStoredToolbarPosition() || 'bottomRight';
+  });
+
   const onNewSnapArea = useCallback(
     (snapArea: keyof DraggableContextType['snapAreas'] | null) => {
       saveToolbarPosition(snapArea);
+      setCurrentSnapArea(snapArea);
     },
     [],
   );
 
-  // Get initial position from localStorage or default to 'bottomRight'
-  const initialSnapArea = useMemo(() => {
-    return getStoredToolbarPosition() || 'bottomRight';
+  // Listen for position changes from settings panel
+  useEffect(() => {
+    const handlePositionChange = (
+      event: CustomEvent<{ position: keyof DraggableContextType['snapAreas'] }>,
+    ) => {
+      const newPosition = event.detail.position;
+      setCurrentSnapArea(newPosition);
+    };
+
+    window.addEventListener(
+      'toolbar-position-change',
+      handlePositionChange as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        'toolbar-position-change',
+        handlePositionChange as EventListener,
+      );
+    };
   }, []);
 
+  // Get initial position from localStorage or default to 'bottomRight'
+  const initialSnapArea = useMemo(() => {
+    return currentSnapArea || 'bottomRight';
+  }, [currentSnapArea]);
+
+  // Use the currentSnapArea as a key to force re-mount when position changes from settings
+  return (
+    <DraggableComponent
+      key={currentSnapArea}
+      initialSnapArea={initialSnapArea}
+      onNewSnapArea={onNewSnapArea}
+    />
+  );
+}
+
+/**
+ * Separate component for the draggable functionality to enable re-mounting
+ */
+function DraggableComponent({
+  initialSnapArea,
+  onNewSnapArea,
+}: {
+  initialSnapArea: keyof DraggableContextType['snapAreas'];
+  onNewSnapArea: (
+    snapArea: keyof DraggableContextType['snapAreas'] | null,
+  ) => void;
+}) {
   const draggable = useDraggable({
     startThreshold: 5,
     initialSnapArea,

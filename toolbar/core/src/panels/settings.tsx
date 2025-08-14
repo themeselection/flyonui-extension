@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/panel';
 import { MessageCircleQuestionMarkIcon } from 'lucide-react';
 import { AgentSelection } from './shared-content/agent-selection';
+import { SettingsPositionSelector } from './shared-content/settings-position';
 
 export function SettingsPanel() {
   return (
@@ -21,6 +22,7 @@ export function SettingsPanel() {
       <PanelContent>
         <div className="space-y-6">
           <AgentSelection showConnectedDetails />
+          <SettingsPositionSelector />
         </div>
       </PanelContent>
 
