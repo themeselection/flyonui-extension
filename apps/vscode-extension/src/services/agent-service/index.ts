@@ -1,14 +1,14 @@
-import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
-import { AnalyticsService, EventName } from 'src/services/analytics-service';
-import { dispatchAgentCall } from 'src/utils/dispatch-agent-call';
 import {
   AgentStateType,
   createAgentServer,
-  type UserMessage,
   type AgentServer,
-  type UserMessageContentItem,
   type SelectedElement,
+  type UserMessage,
+  type UserMessageContentItem,
 } from '@stagewise/agent-interface/agent';
+import type { PromptRequest } from '@stagewise/extension-toolbar-srpc-contract';
+import { AnalyticsService, EventName } from 'src/services/analytics-service';
+import { dispatchAgentCall } from 'src/utils/dispatch-agent-call';
 import * as vscode from 'vscode';
 
 // Timeout constants for agent state transitions
@@ -84,8 +84,28 @@ export class AgentService {
       prompt: createPrompt(userMessage),
     };
 
+    if (this.server?.interface) {
+      await processUserMessage(request.prompt, this.server?.interface);
+    }
+
     await dispatchAgentCall(request);
   }
+}
+
+async function processUserMessage(
+  userMessage: string,
+  agentInterface: AgentServer['interface'],
+) {
+  if (!agentInterface) return;
+
+  await vscode.env.clipboard.writeText(userMessage);
+
+  // agentInterface.messaging.set([
+  //   {
+  //     type: 'text',
+  //     text: userMessage,
+  //   },
+  // ]);
 }
 
 /**
