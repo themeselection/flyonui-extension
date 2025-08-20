@@ -11,8 +11,10 @@ import {
   PanelFooter,
   PanelHeader,
 } from '@/components/ui/panel';
+
 import { MessageCircleQuestionMarkIcon } from 'lucide-react';
 import { AgentSelection } from './shared-content/agent-selection';
+import { LicenseKeyManager } from './shared-content/license-key-manager';
 import { SettingsPositionSelector } from './shared-content/settings-position';
 
 export function SettingsPanel() {
@@ -23,6 +25,7 @@ export function SettingsPanel() {
         <div className="space-y-6">
           <AgentSelection showConnectedDetails />
           <SettingsPositionSelector />
+          <LicenseKeyManager />
         </div>
       </PanelContent>
 
