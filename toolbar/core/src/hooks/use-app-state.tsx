@@ -3,13 +3,15 @@
 // This hook provides information to all components about whether certain parts of the companion layout should be rendered or not.
 // Components can use this information to hide themselves or show additional information.
 
-import { createRef, type RefObject, createContext } from 'react';
 import {
-  useContext,
-  useState,
+  createContext,
+  createRef,
   useCallback,
+  useContext,
   useEffect,
+  useState,
   type ReactNode,
+  type RefObject,
 } from 'react';
 
 export interface AppState {
@@ -27,6 +29,9 @@ export interface AppState {
   minimized: boolean;
   minimize: () => void;
   expand: () => void;
+
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
 }
 
 interface InternalAppState extends AppState {
@@ -44,7 +49,11 @@ function loadStateFromStorage(): Partial<InternalAppState> {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (!stored) return {};
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    return {
+      minimized: parsed.minimized,
+      theme: parsed.theme,
+    };
   } catch (error) {
     console.error('Failed to load state from storage:', error);
     return {};
@@ -70,6 +79,7 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
       isMainAppBlocked: false,
       toolbarBoxRef: createRef(),
       minimized: storedState.minimized ?? false,
+      theme: storedState.theme ?? 'system',
       requestMainAppBlock: () => 0, // These will be replaced by the actual implementations
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
@@ -78,6 +88,7 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
       unsetToolbarBoxRef: () => {},
       minimize: () => {},
       expand: () => {},
+      setTheme: () => {},
     };
   });
 
@@ -85,8 +96,48 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
   useEffect(() => {
     saveStateToStorage({
       minimized: state.minimized,
+      theme: state.theme,
     });
-  }, [state.minimized]);
+  }, [state.minimized, state.theme]);
+
+  // Apply theme to DOM
+  useEffect(() => {
+    const applyTheme = () => {
+      // Find the toolbar container element specifically
+      const toolbarElement = document.querySelector(
+        '#stagewise-companion-anchor',
+      );
+
+      let actualTheme = state.theme;
+
+      if (state.theme === 'system') {
+        actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+      }
+
+      if (toolbarElement) {
+        // if actual theme is dark then add the dark class otherwise remove it
+        toolbarElement.classList.toggle('dark', actualTheme === 'dark');
+      }
+    };
+
+    // Delay the theme application to ensure the toolbar element exists
+    const timeoutId = setTimeout(applyTheme, 100);
+
+    // Listen for system theme changes if using system theme
+    if (state.theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme();
+      mediaQuery.addEventListener('change', handleChange);
+      return () => {
+        clearTimeout(timeoutId);
+        mediaQuery.removeEventListener('change', handleChange);
+      };
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [state.theme]);
 
   const requestMainAppBlock = useCallback(() => {
     let newHandleValue = 0;
@@ -162,6 +213,10 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
     setState((prev) => ({ ...prev, minimized: false }));
   }, []);
 
+  const setTheme = useCallback((theme: 'light' | 'dark' | 'system') => {
+    setState((prev) => ({ ...prev, theme }));
+  }, []);
+
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -174,6 +229,8 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
     minimized: state.minimized,
     minimize,
     expand,
+    theme: state.theme,
+    setTheme,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

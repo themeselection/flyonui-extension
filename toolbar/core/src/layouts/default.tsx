@@ -55,7 +55,10 @@ export function DefaultLayout() {
   return (
     <ContextChipHoverProvider>
       <div
-        className={cn('pointer-events-none fixed inset-0 h-screen w-screen')}
+        id="stagewise-companion-anchor"
+        className={cn(
+          'dark pointer-events-none fixed inset-0 h-screen w-screen',
+        )}
       >
         <DOMContextSelector />
         <DraggingArea />

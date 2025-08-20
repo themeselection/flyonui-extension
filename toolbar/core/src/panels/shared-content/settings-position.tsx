@@ -49,7 +49,7 @@ export function SettingsPositionSelector() {
 
   return (
     <div className="space-y-3">
-      <div className="font-medium text-gray-900 text-sm dark:text-gray-100">
+      <div className="font-medium text-foreground text-sm">
         Toolbar Position
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -64,7 +64,7 @@ export function SettingsPositionSelector() {
               'hover:scale-105 active:scale-95',
               current === p.key
                 ? 'border-green-500 bg-green-50 text-green-700 shadow-sm dark:border-green-400 dark:bg-green-900/30 dark:text-green-300'
-                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-700',
+                : 'border-gray-200 bg-background text-foreground hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700',
             )}
             aria-pressed={current === p.key}
           >
@@ -72,7 +72,7 @@ export function SettingsPositionSelector() {
           </button>
         ))}
       </div>
-      <div className="text-gray-500 text-xs dark:text-gray-400">
+      <div className="text-foreground text-xs">
         Choose a fixed position for the toolbar, or drag it manually to any
         corner.
       </div>

@@ -70,7 +70,7 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
   return (
     <Dialog open={isOpen} onClose={handleCancel} className="relative z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/25" aria-hidden="true" />
+      <div className="fixed inset-0 bg-background/30" aria-hidden="true" />
 
       {/* Full-screen container to center the panel */}
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
@@ -82,10 +82,10 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
                 <KeyIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <DialogTitle className="font-semibold text-gray-900 text-lg dark:text-gray-100">
+                <DialogTitle className="font-semibold text-foreground">
                   Enter License Key
                 </DialogTitle>
-                <Description className="text-gray-500 text-sm dark:text-gray-400">
+                <Description className="text-foreground text-sm">
                   Enter your pro license key to unlock premium features
                 </Description>
               </div>
@@ -95,7 +95,7 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
             <div className="mb-4">
               <label
                 htmlFor="license-key"
-                className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300"
+                className="mb-2 block font-medium text-foreground text-sm"
               >
                 License Key
               </label>

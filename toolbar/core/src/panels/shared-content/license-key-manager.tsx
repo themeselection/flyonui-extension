@@ -78,10 +78,8 @@ export function LicenseKeyManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ShieldCheckIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-          <h3 className="font-medium text-gray-900 text-sm dark:text-gray-100">
-            Pro License
-          </h3>
+          <ShieldCheckIcon className="h-5 w-5 text-foreground" />
+          <h3 className="font-medium text-foreground text-sm">Pro License</h3>
         </div>
 
         {!isProUser && (
@@ -148,12 +146,12 @@ export function LicenseKeyManager() {
       ) : (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
           <div className="flex items-start gap-3">
-            <KeyIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-400" />
+            <KeyIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-foreground" />
             <div>
-              <h4 className="font-medium text-gray-900 text-sm dark:text-gray-100">
+              <h4 className="font-medium text-foreground text-sm">
                 Free License
               </h4>
-              <p className="mt-1 text-gray-600 text-xs dark:text-gray-400">
+              <p className="mt-1 text-foreground text-xs">
                 You're using the free version. Upgrade to pro for additional
                 features.
               </p>
