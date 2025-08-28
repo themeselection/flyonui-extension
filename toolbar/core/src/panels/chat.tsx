@@ -1,33 +1,40 @@
-import {
-  Panel,
-  PanelContent,
-  PanelHeader,
-  PanelFooter,
-} from '@/components/ui/panel';
-import { useAgentState } from '@/hooks/agent/use-agent-state';
-import { useChatState } from '@/hooks/use-chat-state';
-import { cn } from '@/utils';
-import { Textarea } from '@headlessui/react';
-import { Button } from '@/components/ui/button';
-import { AgentStateType } from '@stagewise/agent-interface/toolbar';
-import {
-  Loader2Icon,
-  MessageCircleQuestionIcon,
-  XCircleIcon,
-  CheckIcon,
-  CogIcon,
-  ArrowUpIcon,
-} from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ContextElementsChips } from '@/components/context-elements-chips';
 import { AgentMessageDisplay } from '@/components/agent-message-display';
+import { BlocksOverlay } from '@/components/blocks-overlay';
+import { ContextElementsChips } from '@/components/context-elements-chips';
+import { Button } from '@/components/ui/button';
 import {
   GradientBackgroundChat,
   type GradientBackgroundVariant,
 } from '@/components/ui/gradient-background-chat';
+import {
+  Panel,
+  PanelContent,
+  PanelFooter,
+  PanelHeader,
+} from '@/components/ui/panel';
 import { TextSlideshow } from '@/components/ui/text-slideshow';
 import { useAgentMessaging } from '@/hooks/agent/use-agent-messaging';
 import { useAgents } from '@/hooks/agent/use-agent-provider';
+import { useAgentState } from '@/hooks/agent/use-agent-state';
+import { useChatState } from '@/hooks/use-chat-state';
+import { useLicenseKey } from '@/hooks/use-license-key';
+import { cn } from '@/utils';
+import { Textarea } from '@headlessui/react';
+import { AgentStateType } from '@stagewise/agent-interface/toolbar';
+import {
+  ArrowUpIcon,
+  CheckIcon,
+  CogIcon,
+  Loader2Icon,
+  MessageCircleQuestionIcon,
+  XCircleIcon,
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AtMenu } from './shared-content/at-menu';
+import type { DocsItem, DocsListRef } from './shared-content/docs-list';
+import { DocsList } from './shared-content/docs-list';
+
+import { searchComponents } from '@/hooks/use-component-search';
 
 const agentStateToText: Record<AgentStateType, string> = {
   [AgentStateType.WAITING_FOR_USER_RESPONSE]: 'Waiting for user response',
@@ -61,8 +68,129 @@ export function ChatPanel() {
   const agentState = useAgentState();
   const chatState = useChatState();
   const chatMessaging = useAgentMessaging();
+  const { licenseKey } = useLicenseKey();
   const [isComposing, setIsComposing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dataFinal, setDataFinal] = useState<any>(null);
+  const [isBlocksOverlayOpen, setIsBlocksOverlayOpen] = useState(false);
   const { connected } = useAgents();
+
+  // For docs State
+  const [isDocsActivated, setIsDocsActivated] = useState(false);
+  const [isDocsFocused, setIsDocsFocused] = useState(false);
+  const [isDocsReady, setIsDocsReady] = useState(false);
+  const docsListRef = useRef<DocsListRef>(null);
+
+  // @ mention mode state (docs, blocks, etc.)
+  const [atMode, setAtMode] = useState<'docs' | 'blocks' | null>(null);
+
+  // Extract search query from @ input
+  const atSearchQuery = useMemo(() => {
+    if (!chatState.chatInput.startsWith('@')) return '';
+    return chatState.chatInput.slice(1).trim();
+  }, [chatState.chatInput]);
+
+  // Handle @ menu selection
+  const handleAtMenuSelect = useCallback(
+    (type: 'docs' | 'blocks') => {
+      setAtMode(type);
+      // Replace @ with the selected mode prefix and add a space for further input
+      chatState.setChatInput(`@${type} `);
+
+      // Activate docs when docs is selected
+      if (type === 'docs') {
+        setIsDocsActivated(true);
+      }
+    },
+    [chatState],
+  );
+
+  // Show docs search when @mode is docs
+  const shouldShowDocs = useMemo(() => {
+    const result =
+      atMode === 'docs' && chatState.chatInput.trim().startsWith('@');
+    // Removed isPromptCreationActive requirement - docs should be available always
+    console.log('shouldShowDocs debug:', {
+      atMode,
+      chatInput: chatState.chatInput,
+      startsWithAt: chatState.chatInput.trim().startsWith('@'),
+      isPromptCreationActive: chatState.isPromptCreationActive,
+      result,
+    });
+    return result;
+  }, [atMode, chatState.chatInput, chatState.isPromptCreationActive]);
+
+  // Auto-focus on docs when they become visible
+  useEffect(() => {
+    if (shouldShowDocs && isDocsActivated) {
+      docsListRef.current?.focusOnDocs();
+    }
+  }, [shouldShowDocs, isDocsActivated]);
+
+  // Reset readiness when docs hidden or disabled
+  useEffect(() => {
+    if (!shouldShowDocs) {
+      setIsDocsReady(false);
+    }
+  }, [shouldShowDocs]);
+
+  // Reset docs activation when prompt creation is not active (commented out to allow docs without inspector mode)
+  useEffect(() => {
+    if (!chatState.isPromptCreationActive) {
+      setIsDocsActivated(false);
+    }
+  }, [chatState.isPromptCreationActive]);
+
+  const docsSearchQuery = useMemo(() => {
+    if (!shouldShowDocs) return '';
+    const input = chatState.chatInput.trim();
+    if (input.startsWith('@docs ')) {
+      return input.slice(6).trim();
+    } else if (input === '@docs') {
+      return '';
+    }
+    return '';
+  }, [shouldShowDocs, chatState.chatInput]);
+
+  const handleDocSelection = useCallback(
+    (doc: DocsItem) => {
+      chatState.setChatInput(`@docs ${doc.title}`);
+      setAtMode('docs');
+    },
+    [chatState],
+  );
+
+  // Handle @ menu focus return
+  const handleAtMenuFocusReturn = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Reset atMode when input no longer starts with "@" or when switching modes
+  useEffect(() => {
+    if (!chatState.chatInput.startsWith('@')) {
+      setAtMode(null);
+      setIsDocsActivated(false);
+    } else {
+      // Check if user selected a specific mode
+      const input = chatState.chatInput.toLowerCase();
+      if (input.startsWith('@docs ')) {
+        setAtMode('docs');
+        setIsDocsActivated(true);
+      } else if (input.startsWith('@blocks ')) {
+        setAtMode('blocks');
+        setIsDocsActivated(false);
+      } else if (input === '@docs' || input === '@blocks') {
+        // User typed exact mode but no space yet
+        const mode = input.slice(1) as 'docs' | 'blocks';
+        setAtMode(mode);
+        if (mode === 'docs') {
+          setIsDocsActivated(true);
+        } else {
+          setIsDocsActivated(false);
+        }
+      }
+    }
+  }, [chatState.chatInput]);
 
   const enableInputField = useMemo(() => {
     // Disable input if agent is not connected
@@ -74,6 +202,20 @@ export function ChatPanel() {
       agentState.state === AgentStateType.IDLE
     );
   }, [agentState.state, connected]);
+
+  // Show At-menu when user just typed "@" and no specific mode selected yet
+  const shouldShowAtMenu = useMemo(() => {
+    const input = chatState.chatInput.trim();
+    const result =
+      input.startsWith('@') &&
+      !input.startsWith('@docs ') &&
+      !input.startsWith('@blocks ') &&
+      input !== '@docs' &&
+      input !== '@blocks' &&
+      enableInputField && // Check if input is enabled instead of prompt creation mode
+      atMode === null;
+    return result;
+  }, [chatState.chatInput, enableInputField, atMode]);
 
   const canSendMessage = useMemo(() => {
     return (
@@ -93,13 +235,62 @@ export function ChatPanel() {
   }, [chatState]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault();
+        if (shouldShowAtMenu) return;
+
         handleSubmit();
+      } else if (e.key === 'Tab') {
+        setIsLoading(true);
+        e.preventDefault();
+        try {
+          const headers: Record<string, string> = {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+          };
+
+          // Add license key to headers if available
+          if (licenseKey) {
+            headers['x-license-key'] = licenseKey;
+          }
+
+          const response = await fetch(
+            'https://flyonui.com/api/mcp/instructions?path=block_metadata.json',
+            {
+              headers,
+            },
+          );
+          const data = await response.json();
+
+          // Use currentTarget because it's correctly typed as HTMLTextAreaElement
+          const searchResults = searchComponents(
+            data,
+            (e.target as HTMLTextAreaElement)?.value,
+          );
+
+          const responseFinal = await fetch(
+            `https://flyonui.com/api/mcp${searchResults[0].path}?type=mcp`,
+            {
+              headers,
+            },
+          );
+
+          const dataFinal = await responseFinal.json();
+          setDataFinal(dataFinal);
+          setIsLoading(false);
+
+          // Open the blocks overlay
+          if (dataFinal?.blocks?.length > 0) {
+            setIsBlocksOverlayOpen(true);
+          }
+        } catch (error) {
+          console.error('Failed to fetch from API:', error);
+          setIsLoading(false);
+        }
       }
     },
-    [handleSubmit, isComposing],
+    [handleSubmit, isComposing, licenseKey],
   );
 
   const handleCompositionStart = useCallback(() => {
@@ -108,6 +299,37 @@ export function ChatPanel() {
 
   const handleCompositionEnd = useCallback(() => {
     setIsComposing(false);
+  }, []);
+
+  const handleBlockSelect = useCallback(
+    (block: any) => {
+      console.log('Selected block:', block);
+      // You can handle the selected block here (e.g., insert it into the chat input)
+      const currentInput = chatState.chatInput;
+      const newInput = `${currentInput}\n\nSelected component: ${block.title}\nPath: ${block.path}`;
+      chatState.setChatInput(newInput);
+    },
+    [chatState],
+  );
+
+  const handleCloseBlocksOverlay = useCallback(() => {
+    setIsBlocksOverlayOpen(false);
+  }, []);
+
+  const handleFocusReturn = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleCloseDocs = useCallback(() => {
+    setIsDocsFocused(false);
+    setIsDocsActivated(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  const handleDocsFocusChange = useCallback((isFocused: boolean) => {
+    setIsDocsFocused(isFocused);
   }, []);
 
   /* If the user clicks on prompt creation mode, we force-focus the input field all the time. */
@@ -223,33 +445,32 @@ export function ChatPanel() {
       </PanelContent>
       <PanelFooter
         className={cn(
-          'mt-0 flex origin-top flex-col items-stretch gap-0 px-2 pt-1 pb-2 duration-150 ease-out',
+          'mt-0 origin-top px-2 pt-1 pb-2 duration-150 ease-out',
           !enableInputField && 'pointer-events-none opacity-80 brightness-75',
-          chatState.isPromptCreationActive && 'bg-blue-400/10',
-          anyMessageInChat ? 'h-24' : 'h-36',
+          chatState.isPromptCreationActive && 'bg-red-400/10',
+          anyMessageInChat ? 'h-24' : 'h-48',
           !anyMessageInChat &&
             agentState.state === AgentStateType.IDLE &&
             'rounded-t-[inherit] border-transparent border-t-none pt-3 pl-3',
         )}
       >
         <ContextElementsChips />
-        <div className="flex flex-1 flex-row items-end justify-between gap-2">
-          <div className="h-full flex-1">
+        <div className="flex h-full flex-col">
+          <div className="relative h-full flex-1">
             <Textarea
               ref={inputRef}
               value={chatState.chatInput}
               onChange={(e) => {
                 chatState.setChatInput(e.target.value);
               }}
-              onFocus={() => {
-                chatState.startPromptCreation();
-              }}
               onKeyDown={handleKeyDown}
               onCompositionStart={handleCompositionStart}
               onCompositionEnd={handleCompositionEnd}
               disabled={!enableInputField}
               className="m-1 h-full w-full resize-none focus:outline-none"
+              placeholder={isLoading ? 'Loading components...' : undefined}
             />
+
             <div className="pointer-events-none absolute inset-0 z-10 p-1">
               <TextSlideshow
                 className={cn(
@@ -263,18 +484,66 @@ export function ChatPanel() {
                 ]}
               />
             </div>
+
+            {/* @ Menu */}
+            {shouldShowAtMenu && (
+              <div className="pointer-events-auto absolute right-0 bottom-full left-0 z-50 mb-8">
+                <AtMenu
+                  onSelect={handleAtMenuSelect}
+                  onFocusReturn={handleAtMenuFocusReturn}
+                  searchQuery={atSearchQuery}
+                />
+              </div>
+            )}
+
+            {/* Docs List - positioned above chat input */}
+            {shouldShowDocs && isDocsActivated && (
+              <div className="absolute right-0 bottom-full left-0 z-50 mb-8">
+                <DocsList
+                  ref={docsListRef}
+                  searchQuery={docsSearchQuery}
+                  onDocSelection={handleDocSelection}
+                  onFocusReturn={handleFocusReturn}
+                  onFocusChange={handleDocsFocusChange}
+                  onCloseDocs={handleCloseDocs}
+                  onReady={() => setIsDocsReady(true)}
+                />
+              </div>
+            )}
           </div>
-          <Button
-            disabled={!canSendMessage}
-            onClick={handleSubmit}
-            glassy
-            variant="primary"
-            className="size-8 cursor-pointer rounded-full p-1"
-          >
-            <ArrowUpIcon className="size-4 stroke-3" />
-          </Button>
+
+          <div className="flex justify-between">
+            <Button
+              disabled={!canSendMessage}
+              onClick={handleSubmit}
+              glassy
+              variant="primary"
+              className="size-8 cursor-pointer rounded-full p-1"
+            >
+              <ArrowUpIcon className="size-4 stroke-3" />
+            </Button>
+            <Button
+              onClick={() =>
+                chatState.isPromptCreationActive
+                  ? chatState.stopPromptCreation()
+                  : chatState.startPromptCreation()
+              }
+              size="sm"
+              variant="outline"
+            >
+              {chatState.isPromptCreationActive ? 'Close' : 'Open'} Inspector
+            </Button>
+          </div>
         </div>
       </PanelFooter>
+
+      {/* Blocks Overlay */}
+      <BlocksOverlay
+        isOpen={isBlocksOverlayOpen}
+        onClose={handleCloseBlocksOverlay}
+        blocks={dataFinal?.blocks || []}
+        onBlockSelect={handleBlockSelect}
+      />
     </Panel>
   );
 }

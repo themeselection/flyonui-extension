@@ -6,7 +6,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/react';
-import { CheckCircleIcon, KeyIcon, XCircleIcon } from 'lucide-react';
+import { KeyIcon, XCircleIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 interface LicenseKeyDialogProps {
@@ -118,22 +118,6 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
                   {validationError}
                 </div>
               )}
-            </div>
-
-            {/* Info */}
-            <div className="mb-6 rounded-md bg-blue-50 p-3 dark:bg-blue-900/30">
-              <div className="flex items-start gap-2">
-                <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                <div className="text-blue-800 text-sm dark:text-blue-200">
-                  <p className="mb-1 font-medium">Pro features include:</p>
-                  <ul className="ml-2 space-y-1 text-xs">
-                    <li>• Advanced AI agent capabilities</li>
-                    <li>• Priority support</li>
-                    <li>• Extended usage limits</li>
-                    <li>• Early access to new features</li>
-                  </ul>
-                </div>
-              </div>
             </div>
 
             {/* Actions */}

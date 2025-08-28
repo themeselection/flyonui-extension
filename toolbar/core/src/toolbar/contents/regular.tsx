@@ -1,9 +1,8 @@
-import { ToolbarSection } from '@/toolbar/components/section';
-import { ToolbarButton } from '@/toolbar/components/button';
-import { MessageCircleIcon, PuzzleIcon, SettingsIcon } from 'lucide-react';
 import { usePanels } from '@/hooks/use-panels';
 import { usePlugins } from '@/hooks/use-plugins';
-import { useChatState } from '@/hooks/use-chat-state';
+import { ToolbarButton } from '@/toolbar/components/button';
+import { ToolbarSection } from '@/toolbar/components/section';
+import { MessageCircleIcon, PuzzleIcon, SettingsIcon } from 'lucide-react';
 
 export function RegularContent() {
   const {
@@ -17,8 +16,6 @@ export function RegularContent() {
     closePlugin,
     openPlugin,
   } = usePanels();
-
-  const { startPromptCreation } = useChatState();
 
   const plugins = usePlugins();
 
@@ -36,6 +33,7 @@ export function RegularContent() {
           <SettingsIcon className="size-4" />
         </ToolbarButton>
       </ToolbarSection>
+
       {pluginsWithActions.length > 0 && (
         <ToolbarSection>
           {pluginsWithActions.map((plugin) => (
@@ -57,6 +55,7 @@ export function RegularContent() {
           ))}
         </ToolbarSection>
       )}
+
       <ToolbarSection>
         <ToolbarButton
           onClick={
@@ -64,7 +63,6 @@ export function RegularContent() {
               ? closeChat
               : () => {
                   openChat();
-                  startPromptCreation();
                 }
           }
           active={isChatOpen}
