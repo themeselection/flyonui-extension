@@ -233,24 +233,22 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
       }
     }, [filteredDocs.length, activeIndex]);
 
-    // Auto-set activeIndex when docs appear and component is focused
+    // Auto-select first item when docs appear (regardless of focus state)
     useEffect(() => {
-      if (isFocused && filteredDocs.length > 0 && activeIndex === -1) {
+      if (filteredDocs.length > 0 && activeIndex === -1) {
         setActiveIndex(0);
         setStartIndex(0);
       }
-    }, [isFocused, filteredDocs.length, activeIndex]);
+    }, [filteredDocs.length, activeIndex]);
 
-    // Reset activeIndex when losing focus
-    useEffect(() => {
-      if (!isFocused) {
-        setActiveIndex(-1);
-        setStartIndex(0);
-      }
-    }, [isFocused]);
+    // Note: Visual focus (activeIndex) persists even when keyboard focus (isFocused) is false
+    // This enables the dual focus pattern where docs remain visually focused while
+    // allowing character input to flow to the textarea
 
     const activeDoc = useMemo(() => {
-      if (isFocused && activeIndex >= 0 && activeIndex < filteredDocs.length) {
+      // Visual focus persists even when keyboard focus is temporarily given to textarea
+      // This enables the dual focus pattern where preview remains visible during character input
+      if (activeIndex >= 0 && activeIndex < filteredDocs.length) {
         return filteredDocs[activeIndex];
       }
       return null;
@@ -282,9 +280,15 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
         focusOnDocs: () => {
           if (!isFocused) {
             setIsFocused(true);
-            setActiveIndex(filteredDocs.length > 0 ? 0 : -1);
-            setStartIndex(0);
-            containerRef.current?.focus();
+            // CRITICAL: Don't reset activeIndex when re-focusing - maintain current selection
+            // Only set activeIndex if no item is currently selected
+            if (activeIndex === -1 && filteredDocs.length > 0) {
+              setActiveIndex(0);
+              setStartIndex(0);
+            }
+            // NOTE: Don't call containerRef.current?.focus() here!
+            // This would steal DOM focus from textarea and hide the cursor.
+            // For dual focus, textarea keeps DOM focus (cursor) while docs get logical focus (keyboard handling)
           }
         },
         selectActiveDoc: () => {
@@ -379,13 +383,28 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
             }
             break;
           default:
-            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-              setIsFocused(false);
-              setActiveIndex(-1);
-              setStartIndex(0);
+            // THE KEY TO DUAL FOCUS: Character input and editing keys return to textarea
+            if (
+              (e.key.length === 1 && !e.ctrlKey && !e.metaKey) || // Regular characters
+              e.key === 'Backspace' || // Backspace to edit
+              e.key === 'Delete' || // Delete to edit
+              (e.ctrlKey &&
+                (e.key === 'a' ||
+                  e.key === 'x' ||
+                  e.key === 'c' ||
+                  e.key === 'v')) || // Ctrl+A, Ctrl+X, Ctrl+C, Ctrl+V
+              (e.metaKey &&
+                (e.key === 'a' ||
+                  e.key === 'x' ||
+                  e.key === 'c' ||
+                  e.key === 'v')) // Cmd+A, Cmd+X, Cmd+C, Cmd+V (Mac)
+            ) {
+              setIsFocused(false); // IMMEDIATELY stop handling events
               if (onFocusReturn) {
-                onFocusReturn();
+                onFocusReturn(); // Focus textarea
               }
+              // NOTE: Key event continues propagating to textarea!
+              // Do NOT reset activeIndex/startIndex - maintain visual focus
             }
             break;
         }
@@ -415,10 +434,12 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
 
     const handleContainerBlur = useCallback(() => {
       setTimeout(() => {
+        // In dual focus mode, container doesn't get DOM focus, so this blur
+        // should only reset focus state, not visual selection
         if (!containerRef.current?.contains(document.activeElement)) {
           setIsFocused(false);
-          setActiveIndex(-1);
-          setStartIndex(0);
+          // Don't reset activeIndex here - visual focus should persist
+          // Only explicit actions (Escape, selection, etc.) should reset it
         }
       }, 100);
     }, []);
@@ -435,6 +456,8 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
         onFocus={handleContainerFocus}
         onBlur={handleContainerBlur}
         className="space-y-3 outline-none"
+        role="listbox"
+        aria-label="Blocks list"
       >
         {/* Preview */}
         {activeDoc && (
@@ -495,8 +518,8 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
             )}
 
             {visibleDocs.map((doc, idx) => {
-              const isItemFocused =
-                isFocused && activeIndex === startIndex + idx;
+              // Visual focus indicator persists even during character input (dual focus pattern)
+              const isItemFocused = activeIndex === startIndex + idx;
               return (
                 <button
                   key={doc.id}

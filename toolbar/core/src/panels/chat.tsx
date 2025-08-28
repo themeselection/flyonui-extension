@@ -230,9 +230,17 @@ export function ChatPanel() {
   }, [chatMessaging.agentMessage?.contentItems]);
 
   const handleSubmit = useCallback(() => {
+    if (isDocsFocused && docsListRef.current) {
+      const success = docsListRef.current.selectActiveDoc();
+      if (success) {
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
     chatState.sendMessage();
     chatState.stopPromptCreation();
-  }, [chatState]);
+  }, [chatState, isDocsFocused]);
 
   const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -241,6 +249,13 @@ export function ChatPanel() {
         if (shouldShowAtMenu) return;
 
         handleSubmit();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        // CRITICAL: Re-activate docs focus when arrow keys are pressed and docs are visible
+        // This completes the dual focus pattern - allows seamless switching between typing and navigation
+        if (shouldShowDocs && isDocsActivated && !isDocsFocused) {
+          e.preventDefault();
+          docsListRef.current?.focusOnDocs();
+        }
       } else if (e.key === 'Tab') {
         setIsLoading(true);
         e.preventDefault();
@@ -290,7 +305,15 @@ export function ChatPanel() {
         }
       }
     },
-    [handleSubmit, isComposing, licenseKey],
+    [
+      handleSubmit,
+      isComposing,
+      licenseKey,
+      shouldShowDocs,
+      isDocsActivated,
+      isDocsFocused,
+      docsListRef,
+    ],
   );
 
   const handleCompositionStart = useCallback(() => {
@@ -334,35 +357,10 @@ export function ChatPanel() {
 
   /* If the user clicks on prompt creation mode, we force-focus the input field all the time. */
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const isIntentionallyStoppingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    const blurHandler = () => {
-      // Don't refocus if we're intentionally stopping prompt creation
-      if (isIntentionallyStoppingRef.current) {
-        isIntentionallyStoppingRef.current = false;
-        return;
-      }
-      inputRef.current?.focus();
-    };
-
-    if (chatState.isPromptCreationActive && enableInputField) {
-      inputRef.current?.focus();
-      // We only force re-focus if the prompt creation is active.
-      inputRef.current?.addEventListener('blur', blurHandler);
-      isIntentionallyStoppingRef.current = false;
-    } else {
-      // When stopping prompt creation, set the flag to prevent refocus
-      if (inputRef.current === document.activeElement) {
-        isIntentionallyStoppingRef.current = true;
-      }
-      inputRef.current?.blur();
-    }
-
-    return () => {
-      inputRef.current?.removeEventListener('blur', blurHandler);
-    };
-  }, [chatState.isPromptCreationActive, enableInputField]);
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <Panel
@@ -522,6 +520,7 @@ export function ChatPanel() {
             >
               <ArrowUpIcon className="size-4 stroke-3" />
             </Button>
+
             <Button
               onClick={() =>
                 chatState.isPromptCreationActive
