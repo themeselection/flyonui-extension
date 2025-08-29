@@ -64,7 +64,7 @@ export function LicenseKeyManager() {
     if (key.length <= 8) return key;
     const start = key.substring(0, 4);
     const end = key.substring(key.length - 4);
-    return `${start}${'*'.repeat(Math.max(0, key.length - 8))}${end}`;
+    return `${start}${'*'.repeat(8)}${end}`;
   };
 
   const formatLastValidated = (date: Date) => {
