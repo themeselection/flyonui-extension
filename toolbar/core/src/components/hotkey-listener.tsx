@@ -1,8 +1,8 @@
+import { useChatState } from '@/hooks/use-chat-state';
 import { useEventListener } from '@/hooks/use-event-listener';
+import { usePanels } from '@/hooks/use-panels';
 import { useCallback, useMemo } from 'react';
 import { hotkeyActionDefinitions, HotkeyActions } from '../utils';
-import { useChatState } from '@/hooks/use-chat-state';
-import { usePanels } from '@/hooks/use-panels';
 
 type StopPreventPropagation = boolean;
 
@@ -10,7 +10,7 @@ type StopPreventPropagation = boolean;
 export function HotkeyListener() {
   const { startPromptCreation, stopPromptCreation, isPromptCreationActive } =
     useChatState();
-  const { isChatOpen, closeChat } = usePanels();
+  const { isChatOpen, closeChat, openChat } = usePanels();
 
   const hotKeyHandlerMap: Record<HotkeyActions, () => StopPreventPropagation> =
     useMemo(
@@ -22,6 +22,15 @@ export function HotkeyListener() {
             return true;
           }
           return false;
+        },
+        [HotkeyActions.TOGGLE_CHAT]: () => {
+          // Toggle the chat panel open/closed
+          if (isChatOpen) {
+            closeChat();
+          } else {
+            openChat();
+          }
+          return true;
         },
         [HotkeyActions.ESC]: () => {
           if (isPromptCreationActive) {

@@ -70,34 +70,17 @@ export function AgentSelection({
         id="agent-select"
         value={connected?.port || ''}
         onChange={handleAgentChange}
-        className="h-8 w-full rounded-lg border border-zinc-950/10 bg-zinc-500/10 px-3 text-sm ring-1 ring-white/20 focus:border-zinc-500 focus:outline-none"
+        className="h-8 w-full rounded-lg border border-zinc-950/10 bg-zinc-500/10 px-2 text-sm ring-1 ring-white/20 focus:border-zinc-500 focus:outline-none"
       >
         <option value="" disabled>
           {placeholderText}
         </option>
         {availableAgents.map((agent) => (
           <option key={agent.port} value={agent.port}>
-            {agent.name} - {agent.description} - Port {agent.port}
+            {agent.description}({agent.name})
           </option>
         ))}
       </select>
-
-      {/* Active Agent Display - Minimal */}
-      {connected && showConnectedDetails && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/30">
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-green-500" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-foreground text-xs">
-                {connected.name}
-              </p>
-              <p className="truncate text-muted-foreground text-xs">
-                {connected.description}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

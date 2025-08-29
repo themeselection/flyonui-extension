@@ -152,6 +152,7 @@ export interface HotkeyActionDefinition {
 export enum HotkeyActions {
   ESC = 0,
   CTRL_ALT_C = 1,
+  TOGGLE_CHAT = 2,
 }
 
 export const hotkeyActionDefinitions: Record<
@@ -168,6 +169,12 @@ export const hotkeyActionDefinitions: Record<
     keyComboMac: '⌘+⌥+C',
     isEventMatching: (ev) =>
       ev.code === 'KeyC' && (ev.ctrlKey || ev.metaKey) && ev.altKey,
+  },
+  [HotkeyActions.TOGGLE_CHAT]: {
+    keyComboDefault: 'Ctrl+Alt+T',
+    keyComboMac: '⌘+⌥+T',
+    isEventMatching: (ev) =>
+      ev.code === 'KeyT' && (ev.ctrlKey || ev.metaKey) && ev.altKey,
   },
 };
 

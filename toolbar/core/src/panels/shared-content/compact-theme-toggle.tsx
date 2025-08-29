@@ -30,38 +30,51 @@ export function CompactThemeToggle() {
   const CurrentIcon = THEME_ICONS[theme];
 
   return (
-    <DropdownMenu>
-      <DropdownMenuButton>
-        <Button
-          variant="ghost"
-          size="sm"
-          title={`Current theme: ${THEME_LABELS[theme]}`}
-          className="h-8 w-8 rounded-full p-0"
-        >
-          <CurrentIcon className="h-4 w-4" />
-        </Button>
-      </DropdownMenuButton>
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col">
+        <span className="font-medium">Theme</span>
+        <span className="text-muted-foreground text-sm">
+          Choose the appearance.
+        </span>
+      </div>
 
-      <DropdownMenuContent>
-        {Object.entries(THEME_LABELS).map(([themeKey, label]) => {
-          const Icon = THEME_ICONS[themeKey as keyof typeof THEME_ICONS];
-          return (
-            <DropdownMenuButtonItem
-              key={themeKey}
-              onClick={() =>
-                handleThemeChange(themeKey as 'light' | 'dark' | 'system')
-              }
-              className={
-                theme === themeKey ? 'bg-accent text-accent-foreground' : ''
-              }
+      <div>
+        <DropdownMenu>
+          <DropdownMenuButton>
+            <Button
+              variant="ghost"
+              size="sm"
+              title={`Current theme: ${THEME_LABELS[theme]}`}
+              className="inline-flex items-center rounded-md px-2 py-1"
+              aria-label={`Theme (current: ${THEME_LABELS[theme]})`}
             >
-              <Icon className="mr-2 h-4 w-4" />
-              {label}
-              {theme === themeKey && <span className="ml-auto">✓</span>}
-            </DropdownMenuButtonItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+              <CurrentIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">{THEME_LABELS[theme]}</span>
+            </Button>
+          </DropdownMenuButton>
+
+          <DropdownMenuContent>
+            {Object.entries(THEME_LABELS).map(([themeKey, label]) => {
+              const Icon = THEME_ICONS[themeKey as keyof typeof THEME_ICONS];
+              return (
+                <DropdownMenuButtonItem
+                  key={themeKey}
+                  onClick={() =>
+                    handleThemeChange(themeKey as 'light' | 'dark' | 'system')
+                  }
+                  className={
+                    theme === themeKey ? 'bg-accent text-accent-foreground' : ''
+                  }
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  {label}
+                  {theme === themeKey && <span className="ml-auto">✓</span>}
+                </DropdownMenuButtonItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }

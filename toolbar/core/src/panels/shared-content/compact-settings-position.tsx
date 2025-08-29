@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { DraggableContextType } from '@/hooks/use-draggable';
 import { cn } from '@/utils';
 import {
@@ -76,36 +77,39 @@ export function CompactSettingsPositionSelector() {
 
   return (
     <div className="space-y-3">
-      <div className="font-medium text-foreground text-sm">
-        Toolbar Position
-      </div>
+      <div className="flex items-center justify-between">
+        <div className="font-medium text-foreground text-sm">
+          Toolbar Position
+        </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        {POSITIONS.map((position) => {
-          const Icon = position.icon;
-          const isActive = current === position.key;
+        <div className="grid grid-cols-4 gap-1.5">
+          {POSITIONS.map((position) => {
+            const Icon = position.icon;
+            const isActive = current === position.key;
 
-          return (
-            <button
-              key={position.key}
-              type="button"
-              onClick={() => handleChange(position.key)}
-              title={position.tooltip}
-              className={cn(
-                'flex items-center justify-center rounded-lg border p-3 transition-all duration-200 ease-out',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                'hover:scale-105 hover:cursor-pointer active:scale-95',
-                isActive
-                  ? 'border-green-500 bg-green-50 text-green-700 shadow-sm dark:border-green-400 dark:bg-green-900/30 dark:text-green-300'
-                  : 'border-gray-200 bg-background text-foreground hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700',
-              )}
-              aria-pressed={isActive}
-              aria-label={position.tooltip}
-            >
-              <Icon className="h-5 w-5" />
-            </button>
-          );
-        })}
+            return (
+              <Button
+                key={position.key}
+                size="sm"
+                type="button"
+                onClick={() => handleChange(position.key)}
+                title={position.tooltip}
+                className={cn(
+                  'flex items-center justify-center rounded-lg border transition-all duration-200 ease-out',
+                  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                  'hover:scale-105 hover:cursor-pointer active:scale-95',
+                  isActive
+                    ? 'border-green-500 bg-green-50 text-green-700 shadow-sm dark:border-green-400 dark:bg-green-900/30 dark:text-green-300'
+                    : 'border-gray-200 bg-background text-foreground hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700',
+                )}
+                aria-pressed={isActive}
+                aria-label={position.tooltip}
+              >
+                <Icon className="h-4 w-4" />
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="text-muted-foreground text-xs">
