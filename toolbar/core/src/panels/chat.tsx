@@ -109,16 +109,8 @@ export function ChatPanel() {
   const shouldShowDocs = useMemo(() => {
     const result =
       atMode === 'docs' && chatState.chatInput.trim().startsWith('@');
-    // Removed isPromptCreationActive requirement - docs should be available always
-    console.log('shouldShowDocs debug:', {
-      atMode,
-      chatInput: chatState.chatInput,
-      startsWithAt: chatState.chatInput.trim().startsWith('@'),
-      isPromptCreationActive: chatState.isPromptCreationActive,
-      result,
-    });
     return result;
-  }, [atMode, chatState.chatInput, chatState.isPromptCreationActive]);
+  }, [atMode, chatState.chatInput]);
 
   // Auto-focus on docs when they become visible
   useEffect(() => {

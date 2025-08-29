@@ -14,23 +14,23 @@ import {
 
 import { MessageCircleQuestionMarkIcon } from 'lucide-react';
 import { AgentSelection } from './shared-content/agent-selection';
+import { CompactSettingsPositionSelector } from './shared-content/compact-settings-position';
+import { CompactThemeToggle } from './shared-content/compact-theme-toggle';
 import { LicenseKeyManager } from './shared-content/license-key-manager';
-import { SettingsPositionSelector } from './shared-content/settings-position';
-import { ThemeToggle } from './shared-content/theme-toggle';
 
 export function SettingsPanel() {
   return (
     <Panel>
       <PanelHeader
-        title="Preference"
-        description="Manage your preferences for the companion app."
+        title="Settings"
+        description="Manage your settings."
+        actionArea={<CompactThemeToggle />}
       />
       <PanelContent>
         <div className="space-y-6">
           <AgentSelection showConnectedDetails />
-          <SettingsPositionSelector />
+          <CompactSettingsPositionSelector />
           <LicenseKeyManager />
-          <ThemeToggle />
         </div>
       </PanelContent>
 

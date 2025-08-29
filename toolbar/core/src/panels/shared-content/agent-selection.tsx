@@ -1,4 +1,6 @@
+import { Button } from '@/components/ui/button';
 import { useAgents } from '@/hooks/agent/use-agent-provider';
+import { cn } from '@/utils';
 import { RefreshCwIcon } from 'lucide-react';
 
 export function AgentSelection({
@@ -38,52 +40,62 @@ export function AgentSelection({
 
   return (
     <div className="space-y-3">
-      <div>
+      {/* Agent Selection Header with Refresh Button */}
+      <div className="flex items-center justify-between">
         <label
           htmlFor="agent-select"
-          className="mb-2 block font-medium text-foreground text-sm"
+          className="font-medium text-foreground text-sm"
         >
           Agent
-          {isRefreshing && (
-            <RefreshCwIcon className="ml-2 inline size-3 animate-spin text-muted-foreground" />
-          )}
         </label>
-        <div className="flex w-full items-center space-x-2">
-          <select
-            id="agent-select"
-            value={connected?.port || ''}
-            onChange={handleAgentChange}
-            className="h-8 min-w-0 flex-1 rounded-lg border border-zinc-950/10 bg-zinc-500/10 px-3 text-sm ring-1 ring-white/20 focus:border-zinc-500 focus:outline-none"
-          >
-            <option value="" disabled>
-              {placeholderText}
-            </option>
-            {availableAgents.map((agent) => (
-              <option key={agent.port} value={agent.port}>
-                {agent.name} - {agent.description} - Port {agent.port}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="h-6 w-6 p-0"
+        >
+          <RefreshCwIcon
+            className={cn(
+              'size-3',
+              isRefreshing && 'animate-spin',
+              'text-muted-foreground hover:text-foreground',
+            )}
+          />
+        </Button>
       </div>
 
-      <div>
-        <button type="button" onClick={handleRefresh} disabled={isRefreshing}>
-          Refresh
-        </button>
-      </div>
+      {/* Agent Selection Dropdown */}
+      <select
+        id="agent-select"
+        value={connected?.port || ''}
+        onChange={handleAgentChange}
+        className="h-8 w-full rounded-lg border border-zinc-950/10 bg-zinc-500/10 px-3 text-sm ring-1 ring-white/20 focus:border-zinc-500 focus:outline-none"
+      >
+        <option value="" disabled>
+          {placeholderText}
+        </option>
+        {availableAgents.map((agent) => (
+          <option key={agent.port} value={agent.port}>
+            {agent.name} - {agent.description} - Port {agent.port}
+          </option>
+        ))}
+      </select>
 
+      {/* Active Agent Display - Minimal */}
       {connected && showConnectedDetails && (
-        <div className="rounded-lg bg-zinc-950/5 p-3">
-          <p className="font-medium text-foreground text-sm">Active Agent</p>
-
-          <p className="mt-2 font-semibold text-base text-foreground">
-            {connected.name}
-          </p>
-          <p className="text-muted-foreground text-xs">
-            {connected.description}
-          </p>
-          <p className="text-muted-foreground text-xs">Port {connected.port}</p>
+        <div className="rounded-md border border-green-200 bg-green-50 p-2 dark:border-green-800 dark:bg-green-950/30">
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-green-500" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium text-foreground text-xs">
+                {connected.name}
+              </p>
+              <p className="truncate text-muted-foreground text-xs">
+                {connected.description}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

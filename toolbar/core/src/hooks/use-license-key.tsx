@@ -24,11 +24,6 @@ export function useLicenseKey() {
     lastValidated: null,
   });
 
-  // Load license key from storage on mount
-  useEffect(() => {
-    loadLicenseKey();
-  }, []);
-
   const loadLicenseKey = useCallback(async () => {
     try {
       const storedData = localStorage.getItem(LICENSE_KEY_STORAGE_KEY);
@@ -49,6 +44,24 @@ export function useLicenseKey() {
       localStorage.removeItem(LICENSE_KEY_STORAGE_KEY);
     }
   }, []);
+
+  // Load license key from storage on mount
+  useEffect(() => {
+    loadLicenseKey();
+
+    // Listen for storage changes (from other tabs/components)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === LICENSE_KEY_STORAGE_KEY) {
+        loadLicenseKey();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadLicenseKey]);
 
   const validateLicenseKey = useCallback(
     async (key: string): Promise<boolean> => {
@@ -96,15 +109,26 @@ export function useLicenseKey() {
           JSON.stringify(licenseData),
         );
 
-        // Update state
-        setLicenseState({
+        // Update state immediately
+        const newState = {
           licenseKey: trimmedKey,
           isProUser: true,
           isValidated: true,
           lastValidated: new Date(),
-        });
+        };
+
+        setLicenseState(newState);
 
         console.log('License key saved successfully');
+
+        // Trigger a storage event for other components/tabs to sync
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: LICENSE_KEY_STORAGE_KEY,
+            newValue: JSON.stringify(licenseData),
+            storageArea: localStorage,
+          }),
+        );
       } catch (error) {
         console.error('Failed to save license key:', error);
         throw new Error('Failed to save license key');
@@ -122,7 +146,17 @@ export function useLicenseKey() {
         isValidated: false,
         lastValidated: null,
       });
+
       console.log('License key removed successfully');
+
+      // Trigger a storage event for other components/tabs to sync
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: LICENSE_KEY_STORAGE_KEY,
+          newValue: null,
+          storageArea: localStorage,
+        }),
+      );
     } catch (error) {
       console.error('Failed to remove license key:', error);
       throw new Error('Failed to remove license key');

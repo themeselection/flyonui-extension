@@ -7,19 +7,35 @@ import {
   DialogTitle,
 } from '@headlessui/react';
 import { KeyIcon, XCircleIcon } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface LicenseKeyDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  existingLicenseKey?: string | null;
 }
 
-export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
+export function LicenseKeyDialog({
+  isOpen,
+  onClose,
+  existingLicenseKey,
+}: LicenseKeyDialogProps) {
   const [inputKey, setInputKey] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { saveLicenseKey, validateLicenseKey } = useLicenseKey();
+
+  // Pre-populate the input when dialog opens with existing license key
+  useEffect(() => {
+    if (isOpen && existingLicenseKey) {
+      setInputKey(existingLicenseKey);
+      setValidationError(null);
+    } else if (isOpen && !existingLicenseKey) {
+      setInputKey('');
+      setValidationError(null);
+    }
+  }, [isOpen, existingLicenseKey]);
 
   const handleSave = useCallback(async () => {
     if (!inputKey.trim()) {
@@ -70,7 +86,7 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
   return (
     <Dialog open={isOpen} onClose={handleCancel} className="relative z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-background/30" aria-hidden="true" />
+      <div className="fixed inset-0 bg-background/60" aria-hidden="true" />
 
       {/* Full-screen container to center the panel */}
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
@@ -83,10 +99,14 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
               </div>
               <div>
                 <DialogTitle className="font-semibold text-foreground">
-                  Enter License Key
+                  {existingLicenseKey
+                    ? 'Update License Key'
+                    : 'Enter License Key'}
                 </DialogTitle>
                 <Description className="text-foreground text-sm">
-                  Enter your pro license key to unlock premium features
+                  {existingLicenseKey
+                    ? 'Update your pro license key'
+                    : 'Enter your pro license key to unlock premium features'}
                 </Description>
               </div>
             </div>
@@ -135,7 +155,11 @@ export function LicenseKeyDialog({ isOpen, onClose }: LicenseKeyDialogProps) {
                 onClick={handleSave}
                 disabled={isValidating || !inputKey.trim()}
               >
-                {isValidating ? 'Validating...' : 'Save License Key'}
+                {isValidating
+                  ? 'Validating...'
+                  : existingLicenseKey
+                    ? 'Update License Key'
+                    : 'Save License Key'}
               </Button>
             </div>
           </div>

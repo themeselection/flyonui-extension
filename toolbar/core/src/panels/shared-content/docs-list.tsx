@@ -306,7 +306,7 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
                 headers: {
                   Accept: 'application/json',
                 },
-                signal: AbortSignal.timeout(5000), // 5 second timeout
+                signal: AbortSignal.timeout(8000), // 5 second timeout
               },
             );
 
