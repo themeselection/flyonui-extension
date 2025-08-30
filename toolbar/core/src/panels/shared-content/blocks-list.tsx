@@ -178,7 +178,41 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
                 return a.title?.localeCompare(b.title || '') || 0;
               });
 
-              setSearchResults(sortedResults);
+              const blockResponse = await Promise.all(
+                sortedResults.map(async (result) => {
+                  const apiBlockResponse = await fetch(
+                    `https://flyonui.com/api/mcp${result.path}?type=mcp`,
+                    {
+                      headers,
+                    },
+                  );
+
+                  const blockData = await apiBlockResponse.json();
+                  return blockData;
+                }),
+              );
+
+              console.log(
+                'Search results:',
+                blockResponse['0'].blocks,
+                typeof blockResponse,
+                Object.keys(blockResponse),
+                Object.values(blockResponse),
+              );
+
+              // Convert search results to BlockItem format
+              const finalBlockResult: BlockItem[] = blockResponse[
+                '0'
+              ].blocks.map((item) => ({
+                path: item.path,
+                title: item.title || 'Unknown',
+                description:
+                  item.blockDescription || `Component at ${item.path}`,
+                category: 'popular' as const,
+                name: item.title,
+              }));
+
+              setSearchResults(finalBlockResult);
             }
           } catch (apiError) {
             // API failed, but we already have local results - no need to show error
