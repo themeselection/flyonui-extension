@@ -1,11 +1,5 @@
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuButton,
-  DropdownMenuContent,
-  DropdownMenuLinkItem,
-} from '@/components/ui/dropdown-menu';
-import {
   Panel,
   PanelContent,
   PanelFooter,
@@ -15,7 +9,7 @@ import { usePanels } from '@/hooks/use-panels';
 
 import { useHotkeyListenerComboText } from '@/hooks/use-hotkey-listener-combo-text';
 import { HotkeyActions } from '@/utils';
-import { MessageCircleQuestionMarkIcon, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { AgentSelection } from './shared-content/agent-selection';
 import { CompactSettingsPositionSelector } from './shared-content/compact-settings-position';
 import { CompactThemeToggle } from './shared-content/compact-theme-toggle';
@@ -61,28 +55,20 @@ export function SettingsPanel() {
       </PanelContent>
 
       <PanelFooter>
-        <DropdownMenu>
-          <DropdownMenuButton>
-            <Button glassy size="sm" variant="secondary">
-              <MessageCircleQuestionMarkIcon className="mr-2 size-4" />
-              Need help?
-            </Button>
-          </DropdownMenuButton>
-          <DropdownMenuContent>
-            <DropdownMenuLinkItem
-              href="https://stagewise.io/docs"
-              target="_blank"
+        <div className="flex justify-between text-muted-foreground text-sm">
+          <div>Open source Visual Editor</div>
+          <div>
+            Fork of{' '}
+            <a
+              href="https://stagewise.io"
+              target="blank"
+              className="italic underline"
             >
-              Read the docs
-            </DropdownMenuLinkItem>
-            <DropdownMenuLinkItem
-              href="https://discord.gg/y8gdNb4D"
-              target="_blank"
-            >
-              Join the community
-            </DropdownMenuLinkItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              Stagewise
+            </a>
+            .
+          </div>
+        </div>
       </PanelFooter>
     </Panel>
   );
