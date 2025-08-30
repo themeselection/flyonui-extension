@@ -1,5 +1,4 @@
 import { AgentMessageDisplay } from '@/components/agent-message-display';
-import { BlocksOverlay } from '@/components/blocks-overlay';
 import { ContextElementsChips } from '@/components/context-elements-chips';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +16,6 @@ import { useAgentMessaging } from '@/hooks/agent/use-agent-messaging';
 import { useAgents } from '@/hooks/agent/use-agent-provider';
 import { useAgentState } from '@/hooks/agent/use-agent-state';
 import { useChatState } from '@/hooks/use-chat-state';
-import { useLicenseKey } from '@/hooks/use-license-key';
 import { cn } from '@/utils';
 import { Textarea } from '@headlessui/react';
 import { AgentStateType } from '@stagewise/agent-interface/toolbar';
@@ -31,10 +29,10 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AtMenu } from './shared-content/at-menu';
+import type { BlockItem, BlocksListRef } from './shared-content/blocks-list';
+import { BlocksList } from './shared-content/blocks-list';
 import type { DocsItem, DocsListRef } from './shared-content/docs-list';
 import { DocsList } from './shared-content/docs-list';
-
-import { searchComponents } from '@/hooks/use-component-search';
 
 const agentStateToText: Record<AgentStateType, string> = {
   [AgentStateType.WAITING_FOR_USER_RESPONSE]: 'Waiting for user response',
@@ -68,18 +66,18 @@ export function ChatPanel() {
   const agentState = useAgentState();
   const chatState = useChatState();
   const chatMessaging = useAgentMessaging();
-  const { licenseKey } = useLicenseKey();
   const [isComposing, setIsComposing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [dataFinal, setDataFinal] = useState<any>(null);
-  const [isBlocksOverlayOpen, setIsBlocksOverlayOpen] = useState(false);
   const { connected } = useAgents();
 
   // For docs State
   const [isDocsActivated, setIsDocsActivated] = useState(false);
   const [isDocsFocused, setIsDocsFocused] = useState(false);
-  const [isDocsReady, setIsDocsReady] = useState(false);
   const docsListRef = useRef<DocsListRef>(null);
+
+  // For blocks State
+  const [isBlocksActivated, setIsBlocksActivated] = useState(false);
+  const [isBlocksFocused, setIsBlocksFocused] = useState(false);
+  const blocksListRef = useRef<BlocksListRef>(null);
 
   // @ mention mode state (docs, blocks, etc.)
   const [atMode, setAtMode] = useState<'docs' | 'blocks' | null>(null);
@@ -100,6 +98,8 @@ export function ChatPanel() {
       // Activate docs when docs is selected
       if (type === 'docs') {
         setIsDocsActivated(true);
+      } else if (type === 'blocks') {
+        setIsBlocksActivated(true);
       }
     },
     [chatState],
@@ -112,6 +112,13 @@ export function ChatPanel() {
     return result;
   }, [atMode, chatState.chatInput]);
 
+  // Show blocks search when @mode is blocks
+  const shouldShowBlocks = useMemo(() => {
+    const result =
+      atMode === 'blocks' && chatState.chatInput.trim().startsWith('@');
+    return result;
+  }, [atMode, chatState.chatInput]);
+
   // Auto-focus on docs when they become visible
   useEffect(() => {
     if (shouldShowDocs && isDocsActivated) {
@@ -119,17 +126,28 @@ export function ChatPanel() {
     }
   }, [shouldShowDocs, isDocsActivated]);
 
+  // Auto-focus on blocks when they become visible
+  useEffect(() => {
+    if (shouldShowBlocks && isBlocksActivated) {
+      blocksListRef.current?.focusOnBlocks();
+    }
+  }, [shouldShowBlocks, isBlocksActivated]);
+
   // Reset readiness when docs hidden or disabled
   useEffect(() => {
-    if (!shouldShowDocs) {
-      setIsDocsReady(false);
-    }
+    // Docs reset logic (if needed later)
   }, [shouldShowDocs]);
+
+  // Reset readiness when blocks hidden or disabled
+  useEffect(() => {
+    // Blocks reset logic (if needed later)
+  }, [shouldShowBlocks]);
 
   // Reset docs activation when prompt creation is not active (commented out to allow docs without inspector mode)
   useEffect(() => {
     if (!chatState.isPromptCreationActive) {
       setIsDocsActivated(false);
+      setIsBlocksActivated(false);
     }
   }, [chatState.isPromptCreationActive]);
 
@@ -144,10 +162,29 @@ export function ChatPanel() {
     return '';
   }, [shouldShowDocs, chatState.chatInput]);
 
+  const blocksSearchQuery = useMemo(() => {
+    if (!shouldShowBlocks) return '';
+    const input = chatState.chatInput.trim();
+    if (input.startsWith('@blocks ')) {
+      return input.slice(8).trim();
+    } else if (input === '@blocks') {
+      return '';
+    }
+    return '';
+  }, [shouldShowBlocks, chatState.chatInput]);
+
   const handleDocSelection = useCallback(
     (doc: DocsItem) => {
       chatState.setChatInput(`@docs ${doc.title}`);
       setAtMode('docs');
+    },
+    [chatState],
+  );
+
+  const handleBlockSelection = useCallback(
+    (block: BlockItem) => {
+      chatState.setChatInput(`@blocks ${block.title}`);
+      setAtMode('blocks');
     },
     [chatState],
   );
@@ -162,23 +199,28 @@ export function ChatPanel() {
     if (!chatState.chatInput.startsWith('@')) {
       setAtMode(null);
       setIsDocsActivated(false);
+      setIsBlocksActivated(false);
     } else {
       // Check if user selected a specific mode
       const input = chatState.chatInput.toLowerCase();
       if (input.startsWith('@docs ')) {
         setAtMode('docs');
         setIsDocsActivated(true);
+        setIsBlocksActivated(false);
       } else if (input.startsWith('@blocks ')) {
         setAtMode('blocks');
         setIsDocsActivated(false);
+        setIsBlocksActivated(true);
       } else if (input === '@docs' || input === '@blocks') {
         // User typed exact mode but no space yet
         const mode = input.slice(1) as 'docs' | 'blocks';
         setAtMode(mode);
         if (mode === 'docs') {
           setIsDocsActivated(true);
+          setIsBlocksActivated(false);
         } else {
           setIsDocsActivated(false);
+          setIsBlocksActivated(true);
         }
       }
     }
@@ -230,9 +272,17 @@ export function ChatPanel() {
       }
     }
 
+    if (isBlocksFocused && blocksListRef.current) {
+      const success = blocksListRef.current.selectActiveBlock();
+      if (success) {
+        setTimeout(() => handleFocusReturn(), 100);
+        return;
+      }
+    }
+
     chatState.sendMessage();
     chatState.stopPromptCreation();
-  }, [chatState, isDocsFocused]);
+  }, [chatState, isDocsFocused, isBlocksFocused]);
 
   const handleKeyDown = useCallback(
     async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -248,63 +298,24 @@ export function ChatPanel() {
           e.preventDefault();
           docsListRef.current?.focusOnDocs();
         }
-      } else if (e.key === 'Tab') {
-        setIsLoading(true);
-        e.preventDefault();
-        try {
-          const headers: Record<string, string> = {
-            Accept: '*/*',
-            'Content-Type': 'application/json',
-          };
-
-          // Add license key to headers if available
-          if (licenseKey) {
-            headers['x-license-key'] = licenseKey;
-          }
-
-          const response = await fetch(
-            'https://flyonui.com/api/mcp/instructions?path=block_metadata.json',
-            {
-              headers,
-            },
-          );
-          const data = await response.json();
-
-          // Use currentTarget because it's correctly typed as HTMLTextAreaElement
-          const searchResults = searchComponents(
-            data,
-            (e.target as HTMLTextAreaElement)?.value,
-          );
-
-          const responseFinal = await fetch(
-            `https://flyonui.com/api/mcp${searchResults[0].path}?type=mcp`,
-            {
-              headers,
-            },
-          );
-
-          const dataFinal = await responseFinal.json();
-          setDataFinal(dataFinal);
-          setIsLoading(false);
-
-          // Open the blocks overlay
-          if (dataFinal?.blocks?.length > 0) {
-            setIsBlocksOverlayOpen(true);
-          }
-        } catch (error) {
-          console.error('Failed to fetch from API:', error);
-          setIsLoading(false);
+        // CRITICAL: Re-activate blocks focus when arrow keys are pressed and blocks are visible
+        if (shouldShowBlocks && isBlocksActivated && !isBlocksFocused) {
+          e.preventDefault();
+          blocksListRef.current?.focusOnBlocks();
         }
       }
     },
     [
       handleSubmit,
       isComposing,
-      licenseKey,
       shouldShowDocs,
+      shouldShowBlocks,
       isDocsActivated,
+      isBlocksActivated,
       isDocsFocused,
+      isBlocksFocused,
       docsListRef,
+      blocksListRef,
     ],
   );
 
@@ -314,21 +325,6 @@ export function ChatPanel() {
 
   const handleCompositionEnd = useCallback(() => {
     setIsComposing(false);
-  }, []);
-
-  const handleBlockSelect = useCallback(
-    (block: any) => {
-      console.log('Selected block:', block);
-      // You can handle the selected block here (e.g., insert it into the chat input)
-      const currentInput = chatState.chatInput;
-      const newInput = `${currentInput}\n\nSelected component: ${block.title}\nPath: ${block.path}`;
-      chatState.setChatInput(newInput);
-    },
-    [chatState],
-  );
-
-  const handleCloseBlocksOverlay = useCallback(() => {
-    setIsBlocksOverlayOpen(false);
   }, []);
 
   const handleFocusReturn = useCallback(() => {
@@ -343,8 +339,20 @@ export function ChatPanel() {
     }, 100);
   }, []);
 
+  const handleCloseBlocks = useCallback(() => {
+    setIsBlocksFocused(false);
+    setIsBlocksActivated(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
   const handleDocsFocusChange = useCallback((isFocused: boolean) => {
     setIsDocsFocused(isFocused);
+  }, []);
+
+  const handleBlocksFocusChange = useCallback((isFocused: boolean) => {
+    setIsBlocksFocused(isFocused);
   }, []);
 
   /* If the user clicks on prompt creation mode, we force-focus the input field all the time. */
@@ -458,7 +466,6 @@ export function ChatPanel() {
               onCompositionEnd={handleCompositionEnd}
               disabled={!enableInputField}
               className="m-1 h-full w-full resize-none focus:outline-none"
-              placeholder={isLoading ? 'Loading components...' : undefined}
             />
 
             <div className="pointer-events-none absolute inset-0 z-10 p-1">
@@ -496,7 +503,26 @@ export function ChatPanel() {
                   onFocusReturn={handleFocusReturn}
                   onFocusChange={handleDocsFocusChange}
                   onCloseDocs={handleCloseDocs}
-                  onReady={() => setIsDocsReady(true)}
+                  onReady={() => {
+                    /* docs ready */
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Blocks List - positioned above chat input */}
+            {shouldShowBlocks && isBlocksActivated && (
+              <div className="absolute right-0 bottom-full left-0 z-50 mb-8">
+                <BlocksList
+                  ref={blocksListRef}
+                  searchQuery={blocksSearchQuery}
+                  onBlockSelection={handleBlockSelection}
+                  onFocusReturn={handleFocusReturn}
+                  onFocusChange={handleBlocksFocusChange}
+                  onCloseBlocks={handleCloseBlocks}
+                  onReady={() => {
+                    /* blocks ready */
+                  }}
                 />
               </div>
             )}
@@ -527,14 +553,6 @@ export function ChatPanel() {
           </div>
         </div>
       </PanelFooter>
-
-      {/* Blocks Overlay */}
-      <BlocksOverlay
-        isOpen={isBlocksOverlayOpen}
-        onClose={handleCloseBlocksOverlay}
-        blocks={dataFinal?.blocks || []}
-        onBlockSelect={handleBlockSelect}
-      />
     </Panel>
   );
 }

@@ -34,11 +34,14 @@ export function SettingsPanel() {
         }
       />
       <PanelContent>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <LicenseKeyManager />
           <AgentSelection showConnectedDetails />
+          <hr className="-mx-4 text-zinc-500/15" />
           <CompactSettingsPositionSelector />
+          <hr className="-mx-4 text-zinc-500/15" />
           <CompactThemeToggle />
+          <hr className="-mx-4 text-zinc-500/15" />
           {/* Shortcut info for toggling the chat panel */}
           <div>
             <div className="flex items-center justify-between">
@@ -47,7 +50,7 @@ export function SettingsPanel() {
                 {useHotkeyListenerComboText(HotkeyActions.TOGGLE_CHAT)}
               </div>
             </div>
-            <div className="mt-1 text-muted-foreground text-sm">
+            <div className="mt-1 text-muted-foreground text-xs">
               Use this shortcut to toggle the chat panel.
             </div>
           </div>
@@ -55,7 +58,7 @@ export function SettingsPanel() {
       </PanelContent>
 
       <PanelFooter>
-        <div className="flex justify-between text-muted-foreground text-sm">
+        <div className="flex justify-between text-muted-foreground text-xs">
           <div>Open source Visual Editor</div>
           <div>
             Fork of{' '}

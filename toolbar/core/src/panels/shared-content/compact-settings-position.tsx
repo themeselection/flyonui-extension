@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import type { DraggableContextType } from '@/hooks/use-draggable';
 import { cn } from '@/utils';
 import {
@@ -78,8 +77,13 @@ export function CompactSettingsPositionSelector() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="font-medium text-foreground text-sm">
-          Toolbar Position
+        <div className="flex flex-col">
+          <div className="font-medium text-foreground text-sm">
+            Toolbar Position
+          </div>
+          <div className="text-muted-foreground text-xs">
+            Select toolbar Position.
+          </div>
         </div>
 
         <div className="grid grid-cols-4 gap-1.5">
@@ -88,14 +92,13 @@ export function CompactSettingsPositionSelector() {
             const isActive = current === position.key;
 
             return (
-              <Button
+              <button
                 key={position.key}
-                size="sm"
                 type="button"
                 onClick={() => handleChange(position.key)}
                 title={position.tooltip}
                 className={cn(
-                  'flex items-center justify-center rounded-lg border transition-all duration-200 ease-out',
+                  'rounded-full border p-1.5 transition-all duration-200 ease-out',
                   'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                   'hover:scale-105 hover:cursor-pointer active:scale-95',
                   isActive
@@ -105,16 +108,11 @@ export function CompactSettingsPositionSelector() {
                 aria-pressed={isActive}
                 aria-label={position.tooltip}
               >
-                <Icon className="h-4 w-4" />
-              </Button>
+                <Icon className="h-3 w-3" />
+              </button>
             );
           })}
         </div>
-      </div>
-
-      <div className="text-muted-foreground text-xs">
-        Choose a fixed position for the toolbar, or drag it manually to any
-        corner.
       </div>
     </div>
   );

@@ -1,3 +1,5 @@
+import { searchComponents } from '@/hooks/use-component-search';
+import { useLicenseKey } from '@/hooks/use-license-key';
 import { cn } from '@/utils';
 import { Loader } from 'lucide-react';
 import {
@@ -10,78 +12,80 @@ import {
   useState,
 } from 'react';
 
-export interface DocsItem {
-  id: string;
+export interface BlockItem {
+  path: string;
   title: string;
   description: string;
   category: 'popular' | 'recent';
+  name?: string;
 }
 
-interface DocsListProps {
+interface BlocksListProps {
   searchQuery?: string;
-  onDocSelection?: (item: DocsItem) => void;
+  onBlockSelection?: (item: BlockItem) => void;
   onFocusReturn?: () => void;
-  onFocusChange?: (isFocused: boolean, activeDoc?: DocsItem) => void;
-  onCloseDocs?: () => void;
+  onFocusChange?: (isFocused: boolean, activeBlock?: BlockItem) => void;
+  onCloseBlocks?: () => void;
   onReady?: () => void;
 }
 
-export interface DocsListRef {
-  focusOnDocs: () => void;
-  selectActiveDoc: () => boolean;
+export interface BlocksListRef {
+  focusOnBlocks: () => void;
+  selectActiveBlock: () => boolean;
 }
 
-const RECENT_DOCS_KEY = 'toolbar-docs-recent';
+const RECENT_BLOCKS_KEY = 'toolbar-blocks-recent';
 
 // Helper functions for localStorage
-const getRecentDocs = (): DocsItem[] => {
+const getRecentBlocks = (): BlockItem[] => {
   try {
-    const stored = localStorage.getItem(RECENT_DOCS_KEY);
+    const stored = localStorage.getItem(RECENT_BLOCKS_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
   }
 };
 
-const addToRecentDocs = (item: DocsItem) => {
+const addToRecentBlocks = (item: BlockItem) => {
   try {
-    const recent = getRecentDocs();
+    const recent = getRecentBlocks();
     // Remove if already exists
-    const filtered = recent.filter((doc) => doc.id !== item.id);
+    const filtered = recent.filter((block) => block.path !== item.path);
     // Add to beginning with recent category
     const updatedRecent = [
       { ...item, category: 'recent' as const },
       ...filtered,
     ].slice(0, 5);
-    localStorage.setItem(RECENT_DOCS_KEY, JSON.stringify(updatedRecent));
+    localStorage.setItem(RECENT_BLOCKS_KEY, JSON.stringify(updatedRecent));
   } catch (error) {
-    console.warn('Failed to save recent docs:', error);
+    console.warn('Failed to save recent blocks:', error);
   }
 };
 
-export const DocsList = forwardRef<DocsListRef, DocsListProps>(
+export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
   (
     {
       searchQuery,
-      onDocSelection,
+      onBlockSelection,
       onFocusReturn,
       onFocusChange,
-      onCloseDocs,
+      onCloseBlocks,
       onReady,
     },
     ref,
   ) => {
-    const [recentDocs, setRecentDocs] = useState<DocsItem[]>([]);
-    const [searchResults, setSearchResults] = useState<DocsItem[]>([]);
+    const { licenseKey } = useLicenseKey();
+    const [recentBlocks, setRecentBlocks] = useState<BlockItem[]>([]);
+    const [searchResults, setSearchResults] = useState<BlockItem[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
 
-    // Load recent docs on mount
+    // Load recent blocks on mount
     useEffect(() => {
-      setRecentDocs(getRecentDocs());
+      setRecentBlocks(getRecentBlocks());
     }, []);
 
-    // Hybrid search: local first, then API
+    // Search for blocks using the API
     useEffect(() => {
       if (!searchQuery?.trim()) {
         setSearchResults([]);
@@ -98,60 +102,63 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
           const query = searchQuery.trim().toLowerCase();
 
           // Step 1: Quick local search first
-          const allSearchableDocs = [...recentDocs];
-          const localResults = allSearchableDocs.filter((doc) => {
+          const allSearchableBlocks = [...recentBlocks];
+          const localResults = allSearchableBlocks.filter((block) => {
             const titleMatch =
-              doc.title?.toLowerCase().includes(query) || false;
+              block.title?.toLowerCase().includes(query) || false;
             const descriptionMatch =
-              doc.description?.toLowerCase().includes(query) || false;
-            const idMatch = doc.id?.toLowerCase().includes(query) || false;
+              block.description?.toLowerCase().includes(query) || false;
+            const pathMatch =
+              block.path?.toLowerCase().includes(query) || false;
+            const nameMatch =
+              block.name?.toLowerCase().includes(query) || false;
 
-            return titleMatch || descriptionMatch || idMatch;
+            return titleMatch || descriptionMatch || pathMatch || nameMatch;
           });
 
           // Show local results immediately
           setSearchResults(localResults);
 
-          // Step 2: Try to fetch from Context7 API (non-blocking)
+          // Step 2: Try to fetch from FlyonUI API
           try {
+            const headers: Record<string, string> = {
+              Accept: '*/*',
+              'Content-Type': 'application/json',
+            };
+
+            // Add license key to headers if available
+            if (licenseKey) {
+              headers['x-license-key'] = licenseKey;
+            }
+
             const response = await fetch(
-              `https://api.allorigins.win/get?url=${encodeURIComponent(
-                `https://context7.com/api/v1/search?query=${encodeURIComponent(searchQuery.trim())}`,
-              )}`,
+              'https://flyonui.com/api/mcp/instructions?path=block_metadata.json',
               {
-                method: 'GET',
-                headers: {
-                  Accept: 'application/json',
-                },
+                headers,
                 signal: AbortSignal.timeout(5000), // 5 second timeout
               },
             );
 
             if (response.ok) {
-              const proxyData = await response.json();
-              const data = JSON.parse(proxyData.contents);
+              const data = await response.json();
 
-              // Convert API results to DocsItem format
-              const apiResults: DocsItem[] = (data.results || []).map(
-                (item: any) => ({
-                  id: item.id || `api-${Math.random()}`,
-                  title:
-                    item.title ||
-                    item.name ||
-                    item.id?.split('/').pop() ||
-                    'Unknown',
-                  description:
-                    item.description ||
-                    `Documentation for ${item.title || item.name || 'Unknown'}`,
-                  category: 'popular' as const,
-                }),
-              );
+              // Use searchComponents to find matching blocks
+              const searchResults = searchComponents(data, searchQuery.trim());
+
+              // Convert search results to BlockItem format
+              const apiResults: BlockItem[] = searchResults.map((item) => ({
+                path: item.path,
+                title: item.name || item.path.split('/').pop() || 'Unknown',
+                description: item.description || `Component at ${item.path}`,
+                category: 'popular' as const,
+                name: item.name,
+              }));
 
               // Combine local and API results, remove duplicates
               const combinedResults = [...localResults, ...apiResults];
               const uniqueResults = combinedResults.filter(
-                (doc, index, self) =>
-                  index === self.findIndex((d) => d.id === doc.id),
+                (block, index, self) =>
+                  index === self.findIndex((b) => b.path === block.path),
               );
 
               // Sort results: exact title matches first, then partial matches
@@ -176,7 +183,7 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
           } catch (apiError) {
             // API failed, but we already have local results - no need to show error
             console.warn(
-              'Context7 API search failed, using local results only:',
+              'FlyonUI API search failed, using local results only:',
               apiError,
             );
           }
@@ -190,26 +197,54 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
       }, 300); // 300ms debounce for API requests
 
       return () => clearTimeout(searchTimeout);
-    }, [searchQuery, recentDocs]);
+    }, [searchQuery, recentBlocks, licenseKey]);
 
-    // Combine popular and recent docs (only when no search query)
-    const allDocs = useMemo(() => {
-      // Recent docs first, then popular (excluding duplicates)
-      const recentIds = new Set(recentDocs.map((doc) => doc.id));
-      const popularFiltered = allDocs.filter((doc) => !recentIds.has(doc.id));
-      return [...recentDocs, ...popularFiltered];
-    }, [recentDocs]);
+    // Popular blocks (can be expanded based on usage patterns)
+    const POPULAR_BLOCKS: BlockItem[] = [
+      {
+        path: '/components/button',
+        title: 'Button',
+        description: 'Interactive button component',
+        category: 'popular',
+        name: 'Button',
+      },
+      {
+        path: '/components/input',
+        title: 'Input',
+        description: 'Text input field component',
+        category: 'popular',
+        name: 'Input',
+      },
+      {
+        path: '/components/card',
+        title: 'Card',
+        description: 'Card container component',
+        category: 'popular',
+        name: 'Card',
+      },
+      // Add more popular blocks as needed
+    ];
 
-    // Use search results from API if searching, otherwise use local docs
-    const filteredDocs = useMemo(() => {
+    // Combine popular and recent blocks (only when no search query)
+    const allBlocks = useMemo(() => {
+      // Recent blocks first, then popular (excluding duplicates)
+      const recentPaths = new Set(recentBlocks.map((block) => block.path));
+      const popularFiltered = POPULAR_BLOCKS.filter(
+        (block) => !recentPaths.has(block.path),
+      );
+      return [...recentBlocks, ...popularFiltered];
+    }, [recentBlocks]);
+
+    // Use search results from API if searching, otherwise use local blocks
+    const filteredBlocks = useMemo(() => {
       if (searchQuery?.trim()) {
         // When searching, use API results
         return searchResults;
       } else {
-        // When no search, show local popular + recent docs
-        return allDocs;
+        // When no search, show local popular + recent blocks
+        return allBlocks;
       }
-    }, [searchQuery, searchResults, allDocs]);
+    }, [searchQuery, searchResults, allBlocks]);
 
     // Keyboard navigation state
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -217,100 +252,100 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Show 3 docs starting from startIndex (like bookmarks-list)
-    const visibleDocs = useMemo(() => {
-      return filteredDocs.slice(startIndex, startIndex + 3);
-    }, [filteredDocs, startIndex]);
+    // Show 3 blocks starting from startIndex (like bookmarks-list)
+    const visibleBlocks = useMemo(() => {
+      return filteredBlocks.slice(startIndex, startIndex + 3);
+    }, [filteredBlocks, startIndex]);
 
     // Reset activeIndex when search results change
     useEffect(() => {
-      if (activeIndex >= filteredDocs.length && filteredDocs.length > 0) {
-        setActiveIndex(filteredDocs.length - 1);
-        setStartIndex(Math.max(0, filteredDocs.length - 3));
-      } else if (filteredDocs.length === 0 && activeIndex !== -1) {
+      if (activeIndex >= filteredBlocks.length && filteredBlocks.length > 0) {
+        setActiveIndex(filteredBlocks.length - 1);
+        setStartIndex(Math.max(0, filteredBlocks.length - 3));
+      } else if (filteredBlocks.length === 0 && activeIndex !== -1) {
         setActiveIndex(-1);
         setStartIndex(0);
       }
-    }, [filteredDocs.length, activeIndex]);
+    }, [filteredBlocks.length, activeIndex]);
 
-    // Auto-select first item when docs appear (regardless of focus state)
+    // Auto-select first item when blocks appear (regardless of focus state)
     useEffect(() => {
-      if (filteredDocs.length > 0 && activeIndex === -1) {
+      if (filteredBlocks.length > 0 && activeIndex === -1) {
         setActiveIndex(0);
         setStartIndex(0);
       }
-    }, [filteredDocs.length, activeIndex]);
+    }, [filteredBlocks.length, activeIndex]);
 
     // Note: Visual focus (activeIndex) persists even when keyboard focus (isFocused) is false
-    // This enables the dual focus pattern where docs remain visually focused while
+    // This enables the dual focus pattern where blocks remain visually focused while
     // allowing character input to flow to the textarea
 
-    const activeDoc = useMemo(() => {
+    const activeBlock = useMemo(() => {
       // Visual focus persists even when keyboard focus is temporarily given to textarea
       // This enables the dual focus pattern where preview remains visible during character input
-      if (activeIndex >= 0 && activeIndex < filteredDocs.length) {
-        return filteredDocs[activeIndex];
+      if (activeIndex >= 0 && activeIndex < filteredBlocks.length) {
+        return filteredBlocks[activeIndex];
       }
       return null;
-    }, [isFocused, activeIndex, filteredDocs]);
+    }, [activeIndex, filteredBlocks]);
 
     // Notify ready immediately
     useEffect(() => {
       onReady?.();
     }, [onReady]);
 
-    const handleDocSelection = useCallback(
-      (item: DocsItem) => {
-        // Add to recent docs
-        addToRecentDocs(item);
-        setRecentDocs(getRecentDocs());
+    const handleBlockSelection = useCallback(
+      (item: BlockItem) => {
+        // Add to recent blocks
+        addToRecentBlocks(item);
+        setRecentBlocks(getRecentBlocks());
 
-        onDocSelection?.(item);
-        if (onCloseDocs) {
-          setTimeout(() => onCloseDocs(), 100);
+        onBlockSelection?.(item);
+        if (onCloseBlocks) {
+          setTimeout(() => onCloseBlocks(), 100);
         }
       },
-      [onDocSelection, onCloseDocs],
+      [onBlockSelection, onCloseBlocks],
     );
 
     // Expose methods
     useImperativeHandle(
       ref,
       () => ({
-        focusOnDocs: () => {
+        focusOnBlocks: () => {
           if (!isFocused) {
             setIsFocused(true);
             // CRITICAL: Don't reset activeIndex when re-focusing - maintain current selection
             // Only set activeIndex if no item is currently selected
-            if (activeIndex === -1 && filteredDocs.length > 0) {
+            if (activeIndex === -1 && filteredBlocks.length > 0) {
               setActiveIndex(0);
               setStartIndex(0);
             }
             // NOTE: Don't call containerRef.current?.focus() here!
             // This would steal DOM focus from textarea and hide the cursor.
-            // For dual focus, textarea keeps DOM focus (cursor) while docs get logical focus (keyboard handling)
+            // For dual focus, textarea keeps DOM focus (cursor) while blocks get logical focus (keyboard handling)
           }
         },
-        selectActiveDoc: () => {
+        selectActiveBlock: () => {
           if (
             isFocused &&
             activeIndex >= 0 &&
-            activeIndex < filteredDocs.length
+            activeIndex < filteredBlocks.length
           ) {
-            const activeDocItem = filteredDocs[activeIndex];
-            handleDocSelection(activeDocItem);
+            const activeBlockItem = filteredBlocks[activeIndex];
+            handleBlockSelection(activeBlockItem);
             return true;
           }
           return false;
         },
       }),
-      [filteredDocs, isFocused, activeIndex, handleDocSelection],
+      [filteredBlocks, isFocused, activeIndex, handleBlockSelection],
     );
 
     // Keyboard navigation
     const handleKeyDown = useCallback(
       (e: KeyboardEvent) => {
-        if (!isFocused || filteredDocs.length === 0) {
+        if (!isFocused || filteredBlocks.length === 0) {
           return;
         }
 
@@ -319,14 +354,15 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
             e.preventDefault();
             setActiveIndex((prev) => {
               const nextIndex = prev + 1;
-              const newIndex = nextIndex < filteredDocs.length ? nextIndex : 0;
+              const newIndex =
+                nextIndex < filteredBlocks.length ? nextIndex : 0;
 
               // Update startIndex to keep active element visible (like bookmarks-list)
               setStartIndex((currentStart) => {
                 if (newIndex === 0) {
                   return 0; // Wrapped to beginning
                 } else if (newIndex >= currentStart + 3) {
-                  return Math.min(newIndex - 2, filteredDocs.length - 3); // Scroll down
+                  return Math.min(newIndex - 2, filteredBlocks.length - 3); // Scroll down
                 }
                 return currentStart;
               });
@@ -337,12 +373,12 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
           case 'ArrowUp':
             e.preventDefault();
             setActiveIndex((prev) => {
-              const newIndex = prev > 0 ? prev - 1 : filteredDocs.length - 1;
+              const newIndex = prev > 0 ? prev - 1 : filteredBlocks.length - 1;
 
               // Update startIndex to keep active element visible (like bookmarks-list)
               setStartIndex((currentStart) => {
-                if (newIndex === filteredDocs.length - 1) {
-                  return Math.max(0, filteredDocs.length - 3); // Wrapped to end
+                if (newIndex === filteredBlocks.length - 1) {
+                  return Math.max(0, filteredBlocks.length - 3); // Wrapped to end
                 } else if (newIndex < currentStart) {
                   return Math.max(0, newIndex); // Scroll up
                 }
@@ -354,15 +390,15 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
             break;
           case 'Enter':
             e.preventDefault();
-            if (activeIndex >= 0 && activeIndex < filteredDocs.length) {
-              const activeDocItem = filteredDocs[activeIndex];
-              handleDocSelection(activeDocItem);
+            if (activeIndex >= 0 && activeIndex < filteredBlocks.length) {
+              const activeBlockItem = filteredBlocks[activeIndex];
+              handleBlockSelection(activeBlockItem);
               setTimeout(() => {
                 setIsFocused(false);
                 setActiveIndex(-1);
                 setStartIndex(0);
-                if (onCloseDocs) {
-                  onCloseDocs();
+                if (onCloseBlocks) {
+                  onCloseBlocks();
                 }
                 if (onFocusReturn) {
                   onFocusReturn();
@@ -411,12 +447,12 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
       },
       [
         isFocused,
-        filteredDocs.length,
+        filteredBlocks.length,
         activeIndex,
-        handleDocSelection,
+        handleBlockSelection,
         onFocusReturn,
         onFocusChange,
-        onCloseDocs,
+        onCloseBlocks,
       ],
     );
 
@@ -446,8 +482,8 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
 
     // Notify focus change
     useEffect(() => {
-      onFocusChange?.(isFocused, activeDoc);
-    }, [isFocused, activeDoc, onFocusChange]);
+      onFocusChange?.(isFocused, activeBlock);
+    }, [isFocused, activeBlock, onFocusChange]);
 
     return (
       <div
@@ -460,21 +496,21 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
         aria-label="Blocks list"
       >
         {/* Preview */}
-        {activeDoc && (
+        {activeBlock && (
           <div className="flex justify-center">
             <div className="max-w-[280px] space-y-2 rounded-md border border-border bg-muted p-2">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-foreground text-sm">
-                  {activeDoc.title}
+                  {activeBlock.title}
                 </span>
-                {activeDoc.category === 'recent' && (
+                {activeBlock.category === 'recent' && (
                   <span className="rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-900 dark:text-blue-300">
                     Recent
                   </span>
                 )}
               </div>
               <p className="line-clamp-2 text-muted-foreground text-xs">
-                {activeDoc.description}
+                {activeBlock.description}
               </p>
             </div>
           </div>
@@ -484,31 +520,34 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
           <div className="flex items-center justify-center p-4">
             <Loader className="h-4 w-4 animate-spin" />
             <span className="ml-2 text-muted-foreground text-xs">
-              Searching documentation...
+              Searching components...
             </span>
           </div>
         ) : searchError ? (
           <div className="rounded border border-destructive/50 bg-destructive/10 p-2 text-destructive text-xs">
             Search error: {searchError}
           </div>
-        ) : filteredDocs.length > 0 ? (
+        ) : filteredBlocks.length > 0 ? (
           <div className="space-y-1">
-            {/* Show category headers only for local docs (when not searching) */}
+            {/* Show category headers only for local blocks (when not searching) */}
             {!searchQuery?.trim() && (
               <>
-                {/* Show Recent header only if there are visible recent docs */}
-                {visibleDocs.some((doc) => doc.category === 'recent') && (
+                {/* Show Recent header only if there are visible recent blocks */}
+                {visibleBlocks.some((block) => block.category === 'recent') && (
                   <div className="px-1 font-medium text-muted-foreground text-xs">
                     Recent
                   </div>
                 )}
-                {/* Show Popular header only if there are visible popular docs */}
-                {visibleDocs.some((doc) => doc.category === 'popular') && (
+                {/* Show Popular header only if there are visible popular blocks */}
+                {visibleBlocks.some(
+                  (block) => block.category === 'popular',
+                ) && (
                   <div
                     className={cn(
                       'px-1 font-medium text-muted-foreground text-xs',
-                      visibleDocs.some((doc) => doc.category === 'recent') &&
-                        'mt-2',
+                      visibleBlocks.some(
+                        (block) => block.category === 'recent',
+                      ) && 'mt-2',
                     )}
                   >
                     Popular
@@ -517,12 +556,12 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
               </>
             )}
 
-            {visibleDocs.map((doc, idx) => {
+            {visibleBlocks.map((block, idx) => {
               // Visual focus indicator persists even during character input (dual focus pattern)
               const isItemFocused = activeIndex === startIndex + idx;
               return (
                 <button
-                  key={doc.id}
+                  key={block.path}
                   type="button"
                   className={cn(
                     'flex w-full items-center gap-2 rounded-md border p-2 text-left text-xs transition-colors',
@@ -530,12 +569,12 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
                       ? 'border-border bg-background ring-2 ring-muted-foreground'
                       : 'border-border bg-background hover:border-muted-foreground hover:bg-muted',
                   )}
-                  onClick={() => handleDocSelection(doc)}
+                  onClick={() => handleBlockSelection(block)}
                 >
                   <span className="truncate font-medium text-foreground">
-                    {doc.title}
+                    {block.title}
                   </span>
-                  {doc.category === 'recent' && !searchQuery?.trim() && (
+                  {block.category === 'recent' && !searchQuery?.trim() && (
                     <span className="ml-auto rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-900 dark:text-blue-300">
                       Recent
                     </span>
@@ -545,18 +584,18 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
             })}
 
             <div className="flex items-center justify-between px-1 py-1">
-              {filteredDocs.length > 0 && (
+              {filteredBlocks.length > 0 && (
                 <div className="text-muted-foreground text-xs">
                   {searchQuery?.trim() ? (
                     <>
-                      Found {filteredDocs.length} docs •{' '}
+                      Found {filteredBlocks.length} blocks •{' '}
                       {activeIndex >= 0 ? activeIndex + 1 : 1} of{' '}
-                      {filteredDocs.length}
+                      {filteredBlocks.length}
                     </>
                   ) : (
                     <>
                       {activeIndex >= 0 ? activeIndex + 1 : 1} of{' '}
-                      {filteredDocs.length}
+                      {filteredBlocks.length}
                     </>
                   )}
                 </div>
@@ -569,8 +608,8 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
         ) : (
           <div className="px-1 py-2 text-muted-foreground text-xs">
             {searchQuery?.trim()
-              ? `No documentation found for "${searchQuery}"`
-              : 'No documentation found'}
+              ? `No components found for "${searchQuery}"`
+              : 'No components found'}
           </div>
         )}
       </div>
@@ -578,4 +617,4 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
   },
 );
 
-DocsList.displayName = 'DocsList';
+BlocksList.displayName = 'BlocksList';
