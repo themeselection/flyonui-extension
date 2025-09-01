@@ -1,4 +1,4 @@
-import { searchComponents } from '@/hooks/use-component-search';
+import { useBlockSearch, type BlockItem } from '@/hooks/use-block-search';
 import { useLicenseKey } from '@/hooks/use-license-key';
 import { cn } from '@/utils';
 import { Loader } from 'lucide-react';
@@ -12,13 +12,7 @@ import {
   useState,
 } from 'react';
 
-export interface BlockItem {
-  path: string;
-  title: string;
-  description: string;
-  category: 'popular' | 'recent';
-  name?: string;
-}
+export type { BlockItem };
 
 interface BlocksListProps {
   searchQuery?: string;
@@ -76,162 +70,11 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
   ) => {
     const { licenseKey } = useLicenseKey();
     const [recentBlocks, setRecentBlocks] = useState<BlockItem[]>([]);
-    const [searchResults, setSearchResults] = useState<BlockItem[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchError, setSearchError] = useState<string | null>(null);
 
     // Load recent blocks on mount
     useEffect(() => {
       setRecentBlocks(getRecentBlocks());
     }, []);
-
-    // Search for blocks using the API
-    useEffect(() => {
-      if (!searchQuery?.trim()) {
-        setSearchResults([]);
-        setIsSearching(false);
-        setSearchError(null);
-        return;
-      }
-
-      const searchTimeout = setTimeout(async () => {
-        setIsSearching(true);
-        setSearchError(null);
-
-        try {
-          const query = searchQuery.trim().toLowerCase();
-
-          // Step 1: Quick local search first
-          const allSearchableBlocks = [...recentBlocks];
-          const localResults = allSearchableBlocks.filter((block) => {
-            const titleMatch =
-              block.title?.toLowerCase().includes(query) || false;
-            const descriptionMatch =
-              block.description?.toLowerCase().includes(query) || false;
-            const pathMatch =
-              block.path?.toLowerCase().includes(query) || false;
-            const nameMatch =
-              block.name?.toLowerCase().includes(query) || false;
-
-            return titleMatch || descriptionMatch || pathMatch || nameMatch;
-          });
-
-          // Show local results immediately
-          setSearchResults(localResults);
-
-          // Step 2: Try to fetch from FlyonUI API
-          try {
-            const headers: Record<string, string> = {
-              Accept: '*/*',
-              'Content-Type': 'application/json',
-            };
-
-            // Add license key to headers if available
-            if (licenseKey) {
-              headers['x-license-key'] = licenseKey;
-            }
-
-            const response = await fetch(
-              'https://flyonui.com/api/mcp/instructions?path=block_metadata.json',
-              {
-                headers,
-                signal: AbortSignal.timeout(5000), // 5 second timeout
-              },
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-
-              // Use searchComponents to find matching blocks
-              const searchResults = searchComponents(data, searchQuery.trim());
-
-              // Convert search results to BlockItem format
-              const apiResults: BlockItem[] = searchResults.map((item) => ({
-                path: item.path,
-                title: item.name || item.path.split('/').pop() || 'Unknown',
-                description: item.description || `Component at ${item.path}`,
-                category: 'popular' as const,
-                name: item.name,
-              }));
-
-              // Combine local and API results, remove duplicates
-              const combinedResults = [...localResults, ...apiResults];
-              const uniqueResults = combinedResults.filter(
-                (block, index, self) =>
-                  index === self.findIndex((b) => b.path === block.path),
-              );
-
-              // Sort results: exact title matches first, then partial matches
-              const sortedResults = uniqueResults.sort((a, b) => {
-                const aExactTitle = a.title?.toLowerCase() === query;
-                const bExactTitle = b.title?.toLowerCase() === query;
-
-                if (aExactTitle && !bExactTitle) return -1;
-                if (!aExactTitle && bExactTitle) return 1;
-
-                const aTitleStarts = a.title?.toLowerCase().startsWith(query);
-                const bTitleStarts = b.title?.toLowerCase().startsWith(query);
-
-                if (aTitleStarts && !bTitleStarts) return -1;
-                if (!aTitleStarts && bTitleStarts) return 1;
-
-                return a.title?.localeCompare(b.title || '') || 0;
-              });
-
-              const blockResponse = await Promise.all(
-                sortedResults.map(async (result) => {
-                  const apiBlockResponse = await fetch(
-                    `https://flyonui.com/api/mcp${result.path}?type=mcp`,
-                    {
-                      headers,
-                    },
-                  );
-
-                  const blockData = await apiBlockResponse.json();
-                  return blockData;
-                }),
-              );
-
-              console.log(
-                'Search results:',
-                blockResponse['0'].blocks,
-                typeof blockResponse,
-                Object.keys(blockResponse),
-                Object.values(blockResponse),
-              );
-
-              // Convert search results to BlockItem format
-              const finalBlockResult: BlockItem[] = blockResponse[
-                '0'
-              ].blocks.map((item) => ({
-                path: item.path,
-                title: item.title || 'Unknown',
-                description:
-                  item.blockDescription || `Component at ${item.path}`,
-                category: 'popular' as const,
-                name: item.title,
-              }));
-
-              setSearchResults(finalBlockResult);
-            }
-          } catch (apiError) {
-            // API failed, but we already have local results - no need to show error
-            console.warn(
-              'FlyonUI API search failed, using local results only:',
-              apiError,
-            );
-          }
-        } catch (error) {
-          console.error('Search error:', error);
-          setSearchError('Search failed');
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300); // 300ms debounce for API requests
-
-      return () => clearTimeout(searchTimeout);
-    }, [searchQuery, recentBlocks, licenseKey]);
 
     // Popular blocks (can be expanded based on usage patterns)
     const POPULAR_BLOCKS: BlockItem[] = [
@@ -259,8 +102,8 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
       // Add more popular blocks as needed
     ];
 
-    // Combine popular and recent blocks (only when no search query)
-    const allBlocks = useMemo(() => {
+    // Combine popular and recent blocks for local search
+    const localBlocks = useMemo(() => {
       // Recent blocks first, then popular (excluding duplicates)
       const recentPaths = new Set(recentBlocks.map((block) => block.path));
       const popularFiltered = POPULAR_BLOCKS.filter(
@@ -269,6 +112,13 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
       return [...recentBlocks, ...popularFiltered];
     }, [recentBlocks]);
 
+    // Use the block search hook
+    const { searchResults, isSearching, searchError } = useBlockSearch(
+      searchQuery || '',
+      localBlocks,
+      { licenseKey },
+    );
+
     // Use search results from API if searching, otherwise use local blocks
     const filteredBlocks = useMemo(() => {
       if (searchQuery?.trim()) {
@@ -276,9 +126,9 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
         return searchResults;
       } else {
         // When no search, show local popular + recent blocks
-        return allBlocks;
+        return localBlocks;
       }
-    }, [searchQuery, searchResults, allBlocks]);
+    }, [searchQuery, searchResults, localBlocks]);
 
     // Keyboard navigation state
     const [activeIndex, setActiveIndex] = useState(-1);
