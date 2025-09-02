@@ -3,30 +3,32 @@ import type { InterfaceRouter } from '../router';
 export type { InterfaceRouter };
 
 export {
-  type AgentAvailability,
   AgentAvailabilityError,
+  type AgentAvailability,
 } from '../router/capabilities/availability/types';
 
 export {
-  type AgentState,
   AgentStateType,
+  type AgentState,
 } from '../router/capabilities/state/types';
 
 export {
-  type UserMessage,
-  userMessageSchema,
-  type UserMessageContentItem,
-  type UserMessageMetadata,
   userMessageMetadataSchema,
-  type SelectedElement,
+  userMessageSchema,
   type AgentMessageContentItemPart,
   type AgentMessageUpdate,
+  type SelectedBlock,
+  type SelectedDoc,
+  type SelectedElement,
+  type UserMessage,
+  type UserMessageContentItem,
+  type UserMessageMetadata,
 } from '../router/capabilities/messaging/types';
 
 export type {
   PendingToolCall,
-  ToolCallResult,
   Tool,
+  ToolCallResult,
   ToolList,
 } from '../router/capabilities/tool-calling/types';
 

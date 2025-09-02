@@ -2,6 +2,8 @@ import {
   AgentStateType,
   createAgentServer,
   type AgentServer,
+  type SelectedBlock,
+  type SelectedDoc,
   type SelectedElement,
   type UserMessage,
   type UserMessageContentItem,
@@ -80,6 +82,7 @@ export class AgentService {
     // Create the nice prompt that we need
     this.analyticsService.trackEvent(EventName.AGENT_PROMPT_TRIGGERED);
 
+    console.log('User Message received in AgentService:', userMessage);
     const request: PromptRequest = {
       prompt: createPrompt(userMessage),
     };
@@ -162,6 +165,46 @@ ${Object.entries(element.ownProperties)
 }
 
 /**
+ * Generates a detailed context string for a selected document.
+ */
+function generateDocContext(doc: SelectedDoc, index: number): string {
+  return `
+<doc index="${index + 1}">
+  <instructions>
+    The user has selected the following documentation for reference. Please use context7. 
+  </instructions>
+  <id>${doc.id}</id>
+  <title>${doc.title}</title>
+  <description>${doc.description}</description>
+  <category>${doc.category}</category>
+  ${doc.content ? `<content>${doc.content}</content>` : ''}
+</doc>`.trim();
+}
+
+/**
+ * Generates a detailed context string for a selected block.
+ */
+function generateBlockContext(block: SelectedBlock, index: number): string {
+  return `
+<block index="${index + 1}">
+    <instructions>
+      The user has selected the following UI components/blocks as reference for achieving their goal.
+      Use these components in the following ways:
+      1. INSPIRATION: Integrate the provided code in users codebase to achieve the user goal.
+      2. CODE REFERENCE: Extract and adapt the code from the component prompts to implement similar functionality
+      3. ADAPTIVE: The code attached here is in a HTML. If user is using any other framework, you should modify the code before applying.
+      4. BEST PRACTICES: Follow the coding patterns and conventions demonstrated in these components
+      IMPORTANT: The user's goal should be achieved by leveraging these selected components as building blocks.
+    </instructions>
+  <path>${block.path}</path>
+  <title>${block.title}</title>
+  <description>${block.description}</description>
+  <category>${block.category}</category>
+  ${block.content ? `<content>${block.content}</content>` : ''}
+</block>`.trim();
+}
+
+/**
  * Creates a comprehensive prompt for a Coding Agent LLM.
  *
  * @param selectedElements - An array of HTMLElements the user interacted with.
@@ -184,12 +227,12 @@ export function createPrompt(msg: UserMessage): string {
     .filter(([_, snippets]) => snippets.length > 0)
     .map(([pluginName, snippets]) => {
       return `
-<plugin_contexts>
-<${pluginName}>
-${snippets.map((snippet) => `<${snippet[0]}>${(snippet[1] as { type: 'text'; text: string }).text}</${snippet[0]}>`).join('\n')}
-</${pluginName}>
-</plugin_contexts>
-`.trim();
+        <plugin_contexts>
+        <${pluginName}>
+        ${snippets.map((snippet) => `<${snippet[0]}>${(snippet[1] as { type: 'text'; text: string }).text}</${snippet[0]}>`).join('\n')}
+        </${pluginName}>
+        </plugin_contexts>
+      `.trim();
     })
     .join('\n');
 
@@ -202,6 +245,20 @@ ${snippets.map((snippet) => `<${snippet[0]}>${(snippet[1] as { type: 'text'; tex
 <request>
 <user_message>${userMessage}</user_message>
   <url>${msg.metadata.currentUrl}</url>
+  ${
+    msg.metadata.selectedDocs && msg.metadata.selectedDocs.length > 0
+      ? `<selected_docs>
+        ${msg.metadata.selectedDocs.map((doc, index) => generateDocContext(doc, index)).join('\n')}
+      </selected_docs>`
+      : ''
+  }
+  ${
+    msg.metadata.selectedBlocks && msg.metadata.selectedBlocks.length > 0
+      ? `<selected_blocks>
+    ${msg.metadata.selectedBlocks.map((block, index) => generateBlockContext(block, index)).join('\n')}
+  </selected_blocks>`
+      : ''
+  }
   <pageTitle>${msg.metadata.currentTitle}</pageTitle>
   <browser_locale>${msg.metadata.locale}</browser_locale>
   <user_agent>${msg.metadata.userAgent}</user_agent>

@@ -1,20 +1,29 @@
-import { type ReactNode, createContext } from 'react';
-import { useContext, useState, useCallback, useEffect } from 'react';
-import { useAppState } from './use-app-state';
-import { usePlugins } from './use-plugins';
 import {
-  generateId,
-  getSelectedElementInfo,
   collectUserMessageMetadata,
+  generateId,
+  getSelectedBlockInfo,
+  getSelectedDocInfo,
+  getSelectedElementInfo,
 } from '@/utils';
-import { useAgentMessaging } from './agent/use-agent-messaging';
-import { useAgentState } from './agent/use-agent-state';
 import type {
   UserMessage,
   UserMessageContentItem,
 } from '@stagewise/agent-interface/toolbar';
 import { AgentStateType } from '@stagewise/agent-interface/toolbar';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { useAgentMessaging } from './agent/use-agent-messaging';
+import { useAgentState } from './agent/use-agent-state';
+import { useAppState } from './use-app-state';
+import { useLicenseKey } from './use-license-key';
 import { usePanels } from './use-panels';
+import { usePlugins } from './use-plugins';
 
 interface ContextSnippet {
   promptContextName: string;
@@ -24,6 +33,22 @@ export type PluginContextSnippets = {
   pluginName: string;
   contextSnippets: ContextSnippet[];
 };
+
+export interface DocsContextItem {
+  id: string;
+  title: string;
+  description: string;
+  category: 'popular' | 'recent';
+  install_command: string;
+  code: string;
+}
+
+export interface BlocksContextItem {
+  path: string;
+  title: string;
+  description: string;
+  category: 'popular' | 'recent';
+}
 
 interface ChatContext {
   // Chat content operations
@@ -38,6 +63,15 @@ interface ChatContext {
   }[];
   addChatDomContext: (element: HTMLElement) => void;
   removeChatDomContext: (element: HTMLElement) => void;
+
+  // Docs and blocks context
+  selectedDocs: DocsContextItem[];
+  selectedBlocks: BlocksContextItem[];
+  addChatDocsContext: (doc: DocsContextItem) => void;
+  removeChatDocsContext: (docId: string) => void;
+  addChatBlocksContext: (block: BlocksContextItem) => void;
+  removeChatBlocksContext: (blockPath: string) => void;
+
   sendMessage: () => void;
 
   // UI state
@@ -53,6 +87,12 @@ const ChatContext = createContext<ChatContext>({
   domContextElements: [],
   addChatDomContext: () => {},
   removeChatDomContext: () => {},
+  selectedDocs: [],
+  selectedBlocks: [],
+  addChatDocsContext: () => {},
+  removeChatDocsContext: () => {},
+  addChatBlocksContext: () => {},
+  removeChatBlocksContext: () => {},
   sendMessage: () => {},
   isPromptCreationActive: false,
   startPromptCreation: () => {},
@@ -78,12 +118,15 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       }[];
     }[]
   >([]);
+  const [selectedDocs, setSelectedDocs] = useState<DocsContextItem[]>([]);
+  const [selectedBlocks, setSelectedBlocks] = useState<BlocksContextItem[]>([]);
 
   const { minimized } = useAppState();
   const { plugins } = usePlugins();
   const { sendMessage: sendAgentMessage } = useAgentMessaging();
   const { isChatOpen } = usePanels();
   const agentState = useAgentState();
+  const { licenseKey } = useLicenseKey();
 
   const startPromptCreation = useCallback(() => {
     setIsPromptCreationMode(true);
@@ -95,6 +138,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   const stopPromptCreation = useCallback(() => {
     setIsPromptCreationMode(false);
     setDomContextElements([]);
+    setSelectedDocs([]);
+    setSelectedBlocks([]);
     plugins.forEach((plugin) => {
       plugin.onPromptingAbort?.();
     });
@@ -156,6 +201,36 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     );
   }, []);
 
+  const addChatDocsContext = useCallback((doc: DocsContextItem) => {
+    setSelectedDocs((prev) => {
+      // Check if doc already exists
+      const exists = prev.some((existingDoc) => existingDoc.id === doc.id);
+      if (exists) return prev;
+      return [...prev, doc];
+    });
+  }, []);
+
+  const removeChatDocsContext = useCallback((docId: string) => {
+    setSelectedDocs((prev) => prev.filter((doc) => doc.id !== docId));
+  }, []);
+
+  const addChatBlocksContext = useCallback((block: BlocksContextItem) => {
+    setSelectedBlocks((prev) => {
+      // Check if block already exists
+      const exists = prev.some(
+        (existingBlock) => existingBlock.path === block.path,
+      );
+      if (exists) return prev;
+      return [...prev, block];
+    });
+  }, []);
+
+  const removeChatBlocksContext = useCallback((blockPath: string) => {
+    setSelectedBlocks((prev) =>
+      prev.filter((block) => block.path !== blockPath),
+    );
+  }, []);
+
   const sendMessage = useCallback(async () => {
     if (!chatInput.trim()) return;
 
@@ -163,6 +238,17 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
 
     try {
       // Generate the base for the user message
+      // Prepare metadata with async block info processing
+      const selectedElementsInfo = domContextElements.map((item) =>
+        getSelectedElementInfo(item.element),
+      );
+      const selectedDocsInfo = selectedDocs.map((doc) =>
+        getSelectedDocInfo(doc),
+      );
+      const selectedBlocksInfo = await Promise.all(
+        selectedBlocks.map((block) => getSelectedBlockInfo(block, licenseKey)),
+      );
+
       const baseUserMessage: UserMessage = {
         id: generateId(),
         createdAt: new Date(),
@@ -173,9 +259,9 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
           },
         ],
         metadata: collectUserMessageMetadata(
-          domContextElements.map((item) =>
-            getSelectedElementInfo(item.element),
-          ),
+          selectedElementsInfo,
+          selectedDocsInfo,
+          selectedBlocksInfo,
         ),
         pluginContent: {},
         sentByPlugin: false,
@@ -244,6 +330,8 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
       // Reset state after sending
       setChatInput('');
       setDomContextElements([]);
+      setSelectedDocs([]);
+      setSelectedBlocks([]);
       setIsPromptCreationMode(false);
     } finally {
       setIsSending(false);
@@ -256,6 +344,12 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
     domContextElements,
     addChatDomContext,
     removeChatDomContext,
+    selectedDocs,
+    selectedBlocks,
+    addChatDocsContext,
+    removeChatDocsContext,
+    addChatBlocksContext,
+    removeChatBlocksContext,
     sendMessage,
     isPromptCreationActive: isPromptCreationMode,
     startPromptCreation,

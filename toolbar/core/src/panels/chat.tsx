@@ -175,16 +175,38 @@ export function ChatPanel() {
 
   const handleDocSelection = useCallback(
     (doc: DocsItem) => {
-      chatState.setChatInput(`@docs ${doc.title}`);
-      setAtMode('docs');
+      // Add doc to chat context
+      chatState.addChatDocsContext({
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        category: doc.category,
+        code: '',
+        install_command: `// Documentation ${doc.title}`,
+      });
+
+      // Clear the @docs input and reset mode
+      chatState.setChatInput('');
+      setAtMode(null);
+      setIsDocsActivated(false);
     },
     [chatState],
   );
 
   const handleBlockSelection = useCallback(
     (block: BlockItem) => {
-      chatState.setChatInput(`@blocks ${block.title}`);
-      setAtMode('blocks');
+      // Add block to chat context
+      chatState.addChatBlocksContext({
+        path: block.path,
+        title: block.title,
+        description: block.description,
+        category: block.category,
+      });
+
+      // Clear the @blocks input and reset mode
+      chatState.setChatInput('');
+      setAtMode(null);
+      setIsBlocksActivated(false);
     },
     [chatState],
   );

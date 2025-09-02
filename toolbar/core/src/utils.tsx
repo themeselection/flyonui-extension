@@ -1,10 +1,15 @@
 import type {
+  BlocksContextItem,
+  DocsContextItem,
+} from '@/hooks/use-chat-state';
+import type {
+  SelectedBlock,
+  SelectedDoc,
   SelectedElement,
   UserMessageMetadata,
 } from '@stagewise/agent-interface/toolbar';
 
 export const companionAnchorTagName = 'stagewise-companion-anchor';
-
 const getIFrame = () => {
   const iframe = document.getElementById('user-app-iframe');
   return iframe as HTMLIFrameElement | null;
@@ -452,8 +457,74 @@ export const getSelectedElementInfo = (
   };
 };
 
+export const getSelectedDocInfo = (doc: DocsContextItem): SelectedDoc => {
+  return {
+    id: truncateString(doc.id, 256),
+    title: truncateString(doc.title, 512),
+    description: truncateString(doc.description, 2048),
+    category: doc.category,
+    // Note: content could be added here if we fetch it separately
+    // content: truncateString(doc.code || '', 32768),
+  };
+};
+
+// API utility function for FlyOnUI API calls
+const fetchBlockData = async (
+  path: string,
+  licenseKey: string | null,
+): Promise<string | null> => {
+  try {
+    const url = `https://flyonui.com/api/mcp${path}?type=mcp`;
+
+    const headers: Record<string, string> = {
+      Accept: '*/*',
+      'Content-Type': 'application/json',
+    };
+
+    if (licenseKey) {
+      headers['x-license-key'] = licenseKey;
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      console.warn(
+        `API call failed for path ${path}: ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
+    const data = await response.text();
+    return data;
+  } catch (error) {
+    console.error(`Error making API call for path ${path}:`, error);
+    return null;
+  }
+};
+
+export const getSelectedBlockInfo = async (
+  block: BlocksContextItem,
+  licenseKey: string | null = null,
+): Promise<SelectedBlock> => {
+  // Make API call to get the content
+  const apiContent = await fetchBlockData(block.path, licenseKey);
+
+  return {
+    path: truncateString(block.path, 1024),
+    title: truncateString(block.title, 512),
+    description: truncateString(block.description, 2048),
+    category: block.category,
+    content: apiContent ? apiContent : undefined,
+  };
+};
+
 export const collectUserMessageMetadata = (
   selectedElements: SelectedElement[],
+  selectedDocs: SelectedDoc[] = [],
+  selectedBlocks: SelectedBlock[] = [],
 ): UserMessageMetadata => {
   const iframeWindow = getIFrameWindow();
   return {
@@ -464,6 +535,8 @@ export const collectUserMessageMetadata = (
     userAgent: truncateString(iframeWindow?.navigator.userAgent, 1024),
     locale: truncateString(iframeWindow?.navigator.language, 64),
     selectedElements,
+    selectedDocs,
+    selectedBlocks,
     viewportResolution: {
       width: iframeWindow?.innerWidth,
       height: iframeWindow?.innerHeight,

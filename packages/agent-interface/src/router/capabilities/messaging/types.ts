@@ -126,6 +126,38 @@ export const selectedElementSchema = baseSelectedElementSchema.extend({
   parent: baseSelectedElementSchema.optional(),
 });
 
+/** Information about a selected documentation item */
+export const selectedDocSchema = z.object({
+  id: z.string().min(1).max(256).describe('The unique identifier of the doc.'),
+  title: z.string().min(1).max(512).describe('The title of the doc.'),
+  description: z.string().max(2048).describe('The description of the doc.'),
+  category: z.enum(['popular', 'recent']).describe('The category of the doc.'),
+  content: z
+    .string()
+    .max(32768)
+    .optional()
+    .describe('The actual content of the doc if available.'),
+});
+
+export type SelectedDoc = z.infer<typeof selectedDocSchema>;
+
+/** Information about a selected code block */
+export const selectedBlockSchema = z.object({
+  path: z.string().min(1).max(1024).describe('The file path of the block.'),
+  title: z.string().min(1).max(512).describe('The title of the block.'),
+  description: z.string().max(2048).describe('The description of the block.'),
+  category: z
+    .enum(['popular', 'recent'])
+    .describe('The category of the block.'),
+  content: z
+    .string()
+    .max(32768)
+    .optional()
+    .describe('The actual content of the block if available.'),
+});
+
+export type SelectedBlock = z.infer<typeof selectedBlockSchema>;
+
 export const userMessageMetadataSchema = z.object({
   currentUrl: z.string().max(1024).url().nullable(),
   currentTitle: z.string().max(256).nullable(),
@@ -140,6 +172,14 @@ export const userMessageMetadataSchema = z.object({
   userAgent: z.string().max(1024),
   locale: z.string().max(64),
   selectedElements: z.array(selectedElementSchema),
+  selectedDocs: z
+    .array(selectedDocSchema)
+    .max(20)
+    .describe('Selected documentation items'),
+  selectedBlocks: z
+    .array(selectedBlockSchema)
+    .max(20)
+    .describe('Selected code blocks'),
 });
 
 export type UserMessageMetadata = z.infer<typeof userMessageMetadataSchema>;
