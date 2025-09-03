@@ -381,22 +381,12 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
       >
         {/* Preview */}
         {activeBlock && (
-          <div className="flex justify-center">
-            <div className="max-w-[280px] space-y-2 rounded-md border border-border bg-muted p-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground text-sm">
-                  {activeBlock.title}
-                </span>
-                {activeBlock.category === 'recent' && (
-                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-900 dark:text-blue-300">
-                    Recent
-                  </span>
-                )}
-              </div>
-              <p className="line-clamp-2 text-muted-foreground text-xs">
-                {activeBlock.description}
-              </p>
-            </div>
+          <div className="flex items-center justify-center rounded-lg">
+            <img
+              src={`https://cdn.flyonui.com/fy-assets/extension${activeBlock.path}.png`}
+              alt={activeBlock.title}
+              className="contain h-[200px] w-[250px] rounded-lg border border-border object-cover shadow-md"
+            />
           </div>
         )}
 
