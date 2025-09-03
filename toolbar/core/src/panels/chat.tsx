@@ -274,11 +274,7 @@ export function ChatPanel() {
   }, [chatState.chatInput, enableInputField, atMode]);
 
   const canSendMessage = useMemo(() => {
-    return (
-      enableInputField &&
-      chatState.chatInput.trim().length > 2 &&
-      chatState.isPromptCreationActive
-    );
+    return enableInputField && chatState.chatInput.trim().length > 2;
   }, [enableInputField, chatState]);
 
   const anyMessageInChat = useMemo(() => {
@@ -468,14 +464,17 @@ export function ChatPanel() {
           'mt-0 origin-top px-2 pt-1 pb-2 duration-150 ease-out',
           !enableInputField && 'pointer-events-none opacity-80 brightness-75',
           chatState.isPromptCreationActive && 'bg-red-400/10',
-          anyMessageInChat ? 'h-24' : 'h-48',
+          anyMessageInChat ? 'h-32' : 'h-36',
           !anyMessageInChat &&
             agentState.state === AgentStateType.IDLE &&
             'rounded-t-[inherit] border-transparent border-t-none pt-3 pl-3',
         )}
       >
-        <ContextElementsChips />
         <div className="flex h-full flex-col">
+          {/* Context chips container with fixed height and overflow handling */}
+          <div className="max-h-8 min-h-0 flex-shrink-0 overflow-hidden">
+            <ContextElementsChips />
+          </div>
           <div className="relative h-full flex-1">
             <Textarea
               ref={inputRef}
@@ -506,7 +505,17 @@ export function ChatPanel() {
 
             {/* @ Menu */}
             {shouldShowAtMenu && (
-              <div className="pointer-events-auto absolute right-0 bottom-full left-0 z-50 mb-8">
+              <div
+                className={cn(
+                  'pointer-events-auto absolute right-0 bottom-full left-0 z-50',
+                  // Adjust margin based on whether context chips are present
+                  chatState.domContextElements.length > 0 ||
+                    chatState.selectedDocs.length > 0 ||
+                    chatState.selectedBlocks.length > 0
+                    ? 'mb-16' // Increased margin when context chips are present
+                    : 'mb-8', // Normal margin when no context chips
+                )}
+              >
                 <AtMenu
                   onSelect={handleAtMenuSelect}
                   onFocusReturn={handleAtMenuFocusReturn}
@@ -517,7 +526,17 @@ export function ChatPanel() {
 
             {/* Docs List - positioned above chat input */}
             {shouldShowDocs && isDocsActivated && (
-              <div className="absolute right-0 bottom-full left-0 z-50 mb-8">
+              <div
+                className={cn(
+                  'absolute right-0 bottom-full left-0 z-50',
+                  // Adjust margin based on whether context chips are present
+                  chatState.domContextElements.length > 0 ||
+                    chatState.selectedDocs.length > 0 ||
+                    chatState.selectedBlocks.length > 0
+                    ? 'mb-16' // Increased margin when context chips are present
+                    : 'mb-8', // Normal margin when no context chips
+                )}
+              >
                 <DocsList
                   ref={docsListRef}
                   searchQuery={docsSearchQuery}
@@ -534,7 +553,17 @@ export function ChatPanel() {
 
             {/* Blocks List - positioned above chat input */}
             {shouldShowBlocks && isBlocksActivated && (
-              <div className="absolute right-0 bottom-full left-0 z-50 mb-8">
+              <div
+                className={cn(
+                  'absolute right-0 bottom-full left-0 z-50',
+                  // Adjust margin based on whether context chips are present
+                  chatState.domContextElements.length > 0 ||
+                    chatState.selectedDocs.length > 0 ||
+                    chatState.selectedBlocks.length > 0
+                    ? 'mb-16' // Increased margin when context chips are present
+                    : 'mb-8', // Normal margin when no context chips
+                )}
+              >
                 <BlocksList
                   ref={blocksListRef}
                   searchQuery={blocksSearchQuery}

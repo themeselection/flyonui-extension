@@ -28,8 +28,8 @@ export function ContextElementsChips() {
   }
 
   return (
-    <div className="mb-1.5">
-      <div className="scrollbar-thin flex gap-2 overflow-x-auto pb-1">
+    <div className="mb-1.5 min-h-0">
+      <div className="scrollbar-thin flex max-h-8 gap-2 overflow-x-auto overflow-y-hidden pb-1">
         {/* DOM Element Chips */}
         {domContextElements.map((contextElement, index) => (
           <ContextElementChip
