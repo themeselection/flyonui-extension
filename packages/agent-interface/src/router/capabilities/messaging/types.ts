@@ -158,6 +158,15 @@ export const selectedBlockSchema = z.object({
 
 export type SelectedBlock = z.infer<typeof selectedBlockSchema>;
 
+/** Enum for prompt action types */
+export const promptActionSchema = z
+  .enum(['copy', 'send', 'both'])
+  .describe(
+    'Action to take when triggering the prompt: copy to clipboard only, send to IDE only, or both',
+  );
+
+export type PromptAction = z.infer<typeof promptActionSchema>;
+
 export const userMessageMetadataSchema = z.object({
   currentUrl: z.string().max(1024).url().nullable(),
   currentTitle: z.string().max(256).nullable(),
@@ -180,6 +189,10 @@ export const userMessageMetadataSchema = z.object({
     .array(selectedBlockSchema)
     .max(20)
     .describe('Selected code blocks'),
+  promptAction: promptActionSchema
+    .optional()
+    .default('send')
+    .describe('Action to take when triggering the prompt'),
 });
 
 export type UserMessageMetadata = z.infer<typeof userMessageMetadataSchema>;

@@ -14,6 +14,7 @@ import { AgentSelection } from './shared-content/agent-selection';
 import { CompactSettingsPositionSelector } from './shared-content/compact-settings-position';
 import { CompactThemeToggle } from './shared-content/compact-theme-toggle';
 import { LicenseKeyManager } from './shared-content/license-key-manager';
+import { PromptActionSelector } from './shared-content/prompt-action-selector';
 
 export function SettingsPanel() {
   const { closeSettings } = usePanels();
@@ -39,6 +40,8 @@ export function SettingsPanel() {
           <AgentSelection showConnectedDetails />
           <hr className="-mx-4 text-zinc-500/15" />
           <CompactSettingsPositionSelector />
+          <hr className="-mx-4 text-zinc-500/15" />
+          <PromptActionSelector />
           <hr className="-mx-4 text-zinc-500/15" />
           <CompactThemeToggle />
           <hr className="-mx-4 text-zinc-500/15" />

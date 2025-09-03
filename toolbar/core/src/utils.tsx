@@ -3,6 +3,7 @@ import type {
   DocsContextItem,
 } from '@/hooks/use-chat-state';
 import type {
+  PromptAction,
   SelectedBlock,
   SelectedDoc,
   SelectedElement,
@@ -525,6 +526,7 @@ export const collectUserMessageMetadata = (
   selectedElements: SelectedElement[],
   selectedDocs: SelectedDoc[] = [],
   selectedBlocks: SelectedBlock[] = [],
+  promptAction: PromptAction = 'both',
 ): UserMessageMetadata => {
   const iframeWindow = getIFrameWindow();
   return {
@@ -537,6 +539,7 @@ export const collectUserMessageMetadata = (
     selectedElements,
     selectedDocs,
     selectedBlocks,
+    promptAction,
     viewportResolution: {
       width: iframeWindow?.innerWidth,
       height: iframeWindow?.innerHeight,

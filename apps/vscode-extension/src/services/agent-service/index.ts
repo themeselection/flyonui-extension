@@ -2,6 +2,7 @@ import {
   AgentStateType,
   createAgentServer,
   type AgentServer,
+  type PromptAction,
   type SelectedBlock,
   type SelectedDoc,
   type SelectedElement,
@@ -87,21 +88,34 @@ export class AgentService {
       prompt: createPrompt(userMessage),
     };
 
+    const promptAction = userMessage.metadata.promptAction || 'both';
+
     if (this.server?.interface) {
-      await processUserMessage(request.prompt, this.server?.interface);
+      await processUserMessage(
+        request.prompt,
+        promptAction,
+        this.server?.interface,
+      );
     }
 
-    await dispatchAgentCall(request);
+    // Only send to IDE if promptAction is 'send' or 'both'
+    if (promptAction === 'send' || promptAction === 'both') {
+      await dispatchAgentCall(request);
+    }
   }
 }
 
 async function processUserMessage(
   userMessage: string,
+  promptAction: PromptAction,
   agentInterface: AgentServer['interface'],
 ) {
   if (!agentInterface) return;
 
-  await vscode.env.clipboard.writeText(userMessage);
+  // Only copy to clipboard if promptAction is 'copy' or 'both'
+  if (promptAction === 'copy' || promptAction === 'both') {
+    await vscode.env.clipboard.writeText(userMessage);
+  }
 
   // agentInterface.messaging.set([
   //   {

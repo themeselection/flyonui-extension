@@ -127,6 +127,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
   const { isChatOpen } = usePanels();
   const agentState = useAgentState();
   const { licenseKey } = useLicenseKey();
+  const { promptAction } = useAppState();
 
   const startPromptCreation = useCallback(() => {
     setIsPromptCreationMode(true);
@@ -249,6 +250,13 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
         selectedBlocks.map((block) => getSelectedBlockInfo(block, licenseKey)),
       );
 
+      const metadata = collectUserMessageMetadata(
+        selectedElementsInfo,
+        selectedDocsInfo,
+        selectedBlocksInfo,
+        promptAction,
+      );
+
       const baseUserMessage: UserMessage = {
         id: generateId(),
         createdAt: new Date(),
@@ -258,11 +266,7 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
             text: chatInput,
           },
         ],
-        metadata: collectUserMessageMetadata(
-          selectedElementsInfo,
-          selectedDocsInfo,
-          selectedBlocksInfo,
-        ),
+        metadata,
         pluginContent: {},
         sentByPlugin: false,
       };

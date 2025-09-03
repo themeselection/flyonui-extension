@@ -3,6 +3,7 @@
 // This hook provides information to all components about whether certain parts of the companion layout should be rendered or not.
 // Components can use this information to hide themselves or show additional information.
 
+import type { PromptAction } from '@stagewise/agent-interface/toolbar';
 import {
   createContext,
   createRef,
@@ -32,6 +33,9 @@ export interface AppState {
 
   theme: 'light' | 'dark' | 'system';
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+
+  promptAction: PromptAction;
+  setPromptAction: (action: PromptAction) => void;
 }
 
 interface InternalAppState extends AppState {
@@ -53,6 +57,7 @@ function loadStateFromStorage(): Partial<InternalAppState> {
     return {
       minimized: parsed.minimized,
       theme: parsed.theme,
+      promptAction: parsed.promptAction,
     };
   } catch (error) {
     console.error('Failed to load state from storage:', error);
@@ -80,6 +85,7 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
       toolbarBoxRef: createRef(),
       minimized: storedState.minimized ?? false,
       theme: storedState.theme ?? 'system',
+      promptAction: storedState.promptAction ?? 'send',
       requestMainAppBlock: () => 0, // These will be replaced by the actual implementations
       requestMainAppUnblock: () => 0,
       discardMainAppBlock: () => {},
@@ -89,6 +95,7 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
       minimize: () => {},
       expand: () => {},
       setTheme: () => {},
+      setPromptAction: () => {},
     };
   });
 
@@ -97,8 +104,9 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
     saveStateToStorage({
       minimized: state.minimized,
       theme: state.theme,
+      promptAction: state.promptAction,
     });
-  }, [state.minimized, state.theme]);
+  }, [state.minimized, state.theme, state.promptAction]);
 
   // Apply theme to DOM
   useEffect(() => {
@@ -217,6 +225,10 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
     setState((prev) => ({ ...prev, theme }));
   }, []);
 
+  const setPromptAction = useCallback((promptAction: PromptAction) => {
+    setState((prev) => ({ ...prev, promptAction }));
+  }, []);
+
   const value: AppState = {
     requestMainAppBlock,
     requestMainAppUnblock,
@@ -231,6 +243,8 @@ export function AppStateProvider({ children }: { children?: ReactNode }) {
     expand,
     theme: state.theme,
     setTheme,
+    promptAction: state.promptAction,
+    setPromptAction,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
