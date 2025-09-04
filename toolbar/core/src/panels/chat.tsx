@@ -20,7 +20,6 @@ import { cn } from '@/utils';
 import { Textarea } from '@headlessui/react';
 import { AgentStateType } from '@stagewise/agent-interface/toolbar';
 import {
-  ArrowUpIcon,
   CheckIcon,
   CogIcon,
   Loader2Icon,
@@ -583,11 +582,11 @@ export function ChatPanel() {
             <Button
               disabled={!canSendMessage}
               onClick={handleSubmit}
-              glassy
+              size="sm"
               variant="primary"
-              className="size-8 cursor-pointer rounded-full p-1"
+              className="cursor-pointer rounded-xl p-2"
             >
-              <ArrowUpIcon className="size-4 stroke-3" />
+              Send to {connected ? connected.name : 'Agent'}
             </Button>
 
             <Button
