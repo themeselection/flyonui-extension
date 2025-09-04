@@ -143,11 +143,6 @@ function DocsChip({ doc, onDelete }: DocsChipProps) {
       <span className="max-w-24 truncate font-medium text-blue-800 dark:text-blue-200">
         {doc.title}
       </span>
-      {doc.category === 'recent' && (
-        <span className="rounded-full bg-blue-200 px-1 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-800 dark:text-blue-200">
-          Recent
-        </span>
-      )}
       <button
         type="button"
         onClick={(e) => {
@@ -180,11 +175,6 @@ function BlocksChip({ block, onDelete }: BlocksChipProps) {
       <span className="max-w-24 truncate font-medium text-green-800 dark:text-green-200">
         {block.title}
       </span>
-      {block.category === 'recent' && (
-        <span className="rounded-full bg-green-200 px-1 py-0.5 font-medium text-green-800 text-xs dark:bg-green-800 dark:text-green-200">
-          Recent
-        </span>
-      )}
       <button
         type="button"
         onClick={(e) => {
