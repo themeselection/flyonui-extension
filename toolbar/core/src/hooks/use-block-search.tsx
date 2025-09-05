@@ -80,7 +80,6 @@ const fetchBlockMetadata = async (licenseKey?: string): Promise<any> => {
   }
 
   const data = await response.json();
-  console.log('Block metadata received:', data);
 
   return data;
 };

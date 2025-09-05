@@ -27,8 +27,38 @@
         "command": "stagewise.setAgent",
         "title": "Set the preferred agent you want to use with stagewise",
         "category": "stagewise"
+      },
+      {
+        "command": "extension.openDataPanel",
+        "title": "Open API Data Panel",
+        "category": "stagewise"
+      },
+      {
+        "command": "stagewise.focusApiDataView",
+        "title": "Focus API Data View",
+        "category": "stagewise"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "stagewise-sidebar",
+          "title": "Stagewise",
+          "icon": "$(rocket)"
+        }
+      ]
+    },
+    "views": {
+      "stagewise-sidebar": [
+        {
+          "type": "webview",
+          "id": "stagewise.apiDataView",
+          "name": "Build & Launch",
+          "icon": "$(rocket)",
+          "when": "true"
+        }
+      ]
+    },
     "icons": {
       "stagewise-icon": {
         "description": "Stagewise icon",
@@ -38,22 +68,36 @@
         }
       }
     },
-    "configuration": {
-      "title": "stagewise",
-      "type": "object",
-      "properties": {
-        "stagewise.telemetry.enabled": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable anonymous usage data collection to help improve the product. No personal data is collected.",
-          "tags": [
-            "telemetry",
-            "usesOnlineServices"
-          ],
-          "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/stagewise-io/stagewise/blob/main/apps/vscode-extension/TELEMETRY.md)."
+    "configuration": [
+      {
+        "title": "stagewise",
+        "type": "object",
+        "properties": {
+          "stagewise.telemetry.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable anonymous usage data collection to help improve the product. No personal data is collected.",
+            "tags": [
+              "telemetry",
+              "usesOnlineServices"
+            ],
+            "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/stagewise-io/stagewise/blob/main/apps/vscode-extension/TELEMETRY.md)."
+          }
+        }
+      },
+      {
+        "title": "FlyonUI",
+        "type": "object",
+        "properties": {
+          "flyonui.licenseKey": {
+            "type": "string",
+            "default": "",
+            "description": "Your FlyonUI Pro license key. Get your license at https://flyonui.com/pro",
+            "markdownDescription": "Your FlyonUI Pro license key. Get your license at [FlyonUI Pro](https://flyonui.com/pro)"
+          }
         }
       }
-    }
+    ]
   },
   "homepage": "https://stagewise.io",
   "repository": {
@@ -86,6 +130,7 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.3.2",
     "@yarnpkg/lockfile": "^1.1.0",
+    "copy-webpack-plugin": "^13.0.1",
     "dotenv": "^17.2.0",
     "ovsx": "^0.10.5",
     "ts-loader": "^9.5.2",
@@ -98,9 +143,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.15.1",
-    "@stagewise/agent-runtime-vscode": "workspace:*",
-    "@stagewise/agent-interface": "workspace:*",
     "@stagewise/agent-client": "workspace:*",
+    "@stagewise/agent-interface": "workspace:*",
+    "@stagewise/agent-runtime-vscode": "workspace:*",
     "@stagewise/extension-toolbar-srpc-contract": "workspace:*",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",

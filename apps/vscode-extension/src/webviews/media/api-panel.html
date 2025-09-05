@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data Panel</title>
+    <link rel="stylesheet" href="{{styleUri}}">
+</head>
+<body>
+    <div class="header">
+        <div class="title">FlyonUI Extension</div>
+        <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
+    </div>
+    
+    <div class="license-section">
+        <div class="license-header">
+            <div class="license-title">License Status</div>
+            <div class="license-status none" id="license-status">
+                No License
+            </div>
+        </div>
+        
+        <div class="license-current" id="license-current" style="display: none;">
+            Current License: <span id="current-license-text"></span>
+        </div>
+        
+        <div class="license-input-group">
+            <input 
+                type="text" 
+                class="license-input" 
+                id="license-key-input"
+                placeholder="Enter your FlyonUI Pro license key (e.g., ABCD-1234-EFGH-5678)"
+            />
+            <button class="license-btn" onclick="saveLicenseKey()" id="save-license-btn">
+                Save License
+            </button>
+        </div>
+        
+        <div class="license-description">
+            Don't have FlyonUI Pro? 
+            <a href="#" class="pro-link" onclick="openFlyonuiPro()">
+                🚀 Get FlyonUI Pro License
+            </a>
+            <br>
+            FlyonUI Pro includes premium components, advanced templates, and priority support.
+        </div>
+    </div>
+    
+    <div class="api-section">
+        <div class="section-header">
+            <div class="section-title">FlyonUI Blocks</div>
+            <button class="fetch-btn" onclick="fetchApiData()" id="fetch-api-btn">
+                📡 Fetch Data
+            </button>
+        </div>
+        
+        <div id="api-content">
+            <div class="empty-state" id="empty-state">
+                <p>📋 No data fetched yet</p>
+                <p class="help-text">Click "Fetch Data" to retrieve data from FlyonUI API</p>
+            </div>
+            
+            <div class="loading-state" id="loading-state" style="display: none;">
+                <p>⏳ Fetching data from FlyonUI API...</p>
+            </div>
+            
+            <div class="error-state" id="error-state" style="display: none;">
+                <p class="error-message" id="error-message"></p>
+            </div>
+            
+            <div class="api-data-container" id="api-data-container" style="display: none;">
+                <div class="components-grid" id="components-grid">
+                    <!-- Component cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{scriptUri}}"></script>
+</body>
+</html>

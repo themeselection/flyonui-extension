@@ -1,20 +1,21 @@
-import * as vscode from 'vscode';
-import { removeOldToolbar } from '../auto-prompts/remove-old-toolbar';
-import { getCurrentIDE } from 'src/utils/get-current-ide';
-import { AnalyticsService, EventName } from 'src/services/analytics-service';
-import { createTimeToUpgradePanel } from '../webviews/time-to-upgrade';
-import { StorageService } from 'src/services/storage-service';
-import { VScodeContext } from 'src/services/vscode-context';
-import { EnvironmentInfo } from 'src/services/environment-info';
-import { WorkspaceService } from 'src/services/workspace-service';
-import { PackageJsonScanner } from 'src/services/package-json-scanner';
+import { AgentSelectorService } from 'src/services/agent-selector';
 import { AgentService as IDEChatAgentService } from 'src/services/agent-service';
 import { RetroAgentService } from 'src/services/agent-service/retro';
-import { AgentSelectorService } from 'src/services/agent-selector';
+import { AnalyticsService, EventName } from 'src/services/analytics-service';
+import { EnvironmentInfo } from 'src/services/environment-info';
+import { PackageJsonScanner } from 'src/services/package-json-scanner';
+import { StorageService } from 'src/services/storage-service';
+import { VScodeContext } from 'src/services/vscode-context';
+import { WorkspaceService } from 'src/services/workspace-service';
+import { getCurrentIDE } from 'src/utils/get-current-ide';
+import { ApiDataProvider } from 'src/webviews/api-data-panel';
 import {
   createGettingStartedPanel,
   shouldShowGettingStarted,
 } from 'src/webviews/getting-started';
+import * as vscode from 'vscode';
+import { removeOldToolbar } from '../auto-prompts/remove-old-toolbar';
+import { createTimeToUpgradePanel } from '../webviews/time-to-upgrade';
 
 let ideAgentInitialized = false;
 
@@ -155,6 +156,35 @@ export async function activate(context: vscode.ExtensionContext) {
       },
     );
     context.subscriptions.push(setAgentCommand);
+
+    // Register the API Data webview provider for sidebar
+    const apiDataProvider = new ApiDataProvider(context.extensionUri);
+    context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(
+        ApiDataProvider.viewType,
+        apiDataProvider,
+      ),
+    );
+
+    // Command to focus the API Data view
+    const focusApiDataViewCommand = vscode.commands.registerCommand(
+      'stagewise.focusApiDataView',
+      async () => {
+        await vscode.commands.executeCommand('stagewise.apiDataView.focus');
+      },
+    );
+    context.subscriptions.push(focusApiDataViewCommand);
+
+    // Keep the old command for backward compatibility (optional)
+    const disposablePanel = vscode.commands.registerCommand(
+      'extension.openDataPanel',
+      () => {
+        vscode.window.showInformationMessage(
+          'API Data Panel is now available in the sidebar. Look for the Stagewise icon in the Activity Bar.',
+        );
+      },
+    );
+    context.subscriptions.push(disposablePanel);
   } catch (error) {
     console.error('Error during extension activation:', error);
   }

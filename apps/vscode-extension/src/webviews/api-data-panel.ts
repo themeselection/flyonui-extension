@@ -1,0 +1,421 @@
+import * as fs from 'fs';
+import * as vscode from 'vscode';
+
+export class ApiDataProvider implements vscode.WebviewViewProvider {
+  public static readonly viewType = 'stagewise.apiDataView';
+
+  private _view?: vscode.WebviewView;
+
+  constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  public resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    _context: vscode.WebviewViewResolveContext,
+    _token: vscode.CancellationToken,
+  ) {
+    this._view = webviewView;
+
+    webviewView.webview.options = {
+      // Allow scripts in the webview
+      enableScripts: true,
+
+      localResourceRoots: [this._extensionUri],
+    };
+
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+    // Listen for messages from the webview
+    webviewView.webview.onDidReceiveMessage(async (data) => {
+      switch (data.type) {
+        case 'refresh':
+          this._refreshData();
+          break;
+        case 'openItem':
+          vscode.window.showInformationMessage(`Opening item: ${data.item}`);
+          break;
+        case 'saveLicenseKey':
+          await this._saveLicenseKey(data.licenseKey);
+          break;
+        case 'openFlyonuiPro':
+          vscode.env.openExternal(vscode.Uri.parse('https://flyonui.com/pro'));
+          break;
+        case 'validateLicense':
+          await this._validateLicense(data.licenseKey);
+          break;
+        case 'fetchApiData':
+          await this._fetchFlyonuiData();
+          break;
+        case 'requestInitialData':
+          this._sendInitialData();
+          break;
+        case 'copyToClipboard':
+          await vscode.env.clipboard.writeText(data.text);
+          vscode.window.showInformationMessage('📋 Path copied to clipboard!');
+          break;
+        case 'openComponent':
+          await this._fetchFlyonuiBlockData(data.path, data.name);
+          vscode.window.showInformationMessage(
+            `Opening component: ${data.name} (${data.path})`,
+          );
+          break;
+      }
+    });
+  }
+
+  private _sendInitialData() {
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'initialize',
+        data: this._getSampleData(),
+      });
+    }
+  }
+
+  private async _fetchFlyonuiBlockData(
+    dataPath: string,
+    componentName: string,
+  ) {
+    // Show loading state
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'apiDataLoading',
+        loading: true,
+      });
+    }
+
+    const licenseKey = this._getCurrentLicenseKey();
+
+    if (!licenseKey) {
+      vscode.window.showWarningMessage(
+        'Please enter a valid license key first',
+      );
+      return;
+    }
+
+    try {
+      // Show loading state
+      const url = `https://flyonui.com/api/mcp${dataPath}?type=mcp`;
+      const headers = {
+        Accept: '*/*',
+        'Content-Type': 'application/json',
+        'x-license-key': licenseKey,
+      };
+
+      const response = await fetch(url, { method: 'GET', headers });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData: any = await response.json();
+
+      console.log(`Block data for ${componentName} from ${dataPath}:`, apiData);
+
+      // Handle case where API returns a JSON string instead of an object
+      let parsedData: any;
+      if (typeof apiData === 'string') {
+        parsedData = JSON.parse(apiData);
+      } else {
+        parsedData = apiData;
+      }
+
+      // Extract blocks data - handle different possible structures
+      let blocksData = null;
+      if (parsedData.blocks) {
+        blocksData = parsedData.blocks;
+      } else if (Array.isArray(parsedData)) {
+        blocksData = parsedData;
+      } else if (parsedData.data && Array.isArray(parsedData.data)) {
+        blocksData = parsedData.data;
+      } else {
+        // If no recognizable structure, send the whole data
+        blocksData = [parsedData];
+      }
+
+      console.log(`Processed blocks data for ${componentName}:`, blocksData);
+
+      // Send data to webview
+      if (this._view) {
+        const message = {
+          type: 'componentDetailsReceived',
+          data: blocksData,
+          componentName: componentName,
+          componentPath: dataPath,
+          loading: false,
+        };
+        console.log('Sending component details message:', message);
+        this._view.webview.postMessage(message);
+      }
+    } catch (error) {
+      console.error('Error fetching FlyonUI block data:', error);
+      vscode.window.showErrorMessage(
+        'Failed to fetch block data from FlyonUI API',
+      );
+
+      // Hide loading state and show error in webview
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'componentDetailsReceived',
+          data: null,
+          componentName: componentName,
+          componentPath: dataPath,
+          loading: false,
+          error: 'Failed to fetch block data',
+        });
+      }
+    }
+  }
+
+  private async _fetchFlyonuiData() {
+    const licenseKey = this._getCurrentLicenseKey();
+
+    if (!licenseKey) {
+      vscode.window.showWarningMessage(
+        'Please enter a valid license key first',
+      );
+      return;
+    }
+
+    try {
+      // Show loading state
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'apiDataLoading',
+          loading: true,
+        });
+      }
+
+      const response = await fetch(
+        'https://flyonui.com/api/mcp/instructions?path=block_metadata.json',
+        {
+          method: 'GET',
+          headers: {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+            'x-license-key': licenseKey,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData: any = await response.json();
+
+      // Handle case where API returns a JSON string instead of an object
+      let parsedData: any;
+      if (typeof apiData === 'string') {
+        parsedData = JSON.parse(apiData);
+      } else {
+        parsedData = apiData;
+      }
+
+      const resultData: any[] = [];
+
+      console.log('Raw FlyonUI data:', parsedData);
+
+      parsedData.components.forEach((component: any) => {
+        if ('category' in component) {
+          component.components.forEach((subComponent: any) => {
+            resultData.push(subComponent);
+          });
+        } else {
+          resultData.push(component);
+        }
+      });
+
+      // Send data to webview
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'apiDataReceived',
+          data: resultData,
+          loading: false,
+        });
+      }
+
+      vscode.window.showInformationMessage('API data fetched successfully!');
+    } catch (error) {
+      console.error('Error fetching FlyonUI data:', error);
+
+      let errorMessage = 'Failed to fetch data from FlyonUI API';
+      if (error instanceof Error) {
+        if (error.message.includes('401')) {
+          errorMessage = 'Invalid license key. Please check your license.';
+        } else if (error.message.includes('403')) {
+          errorMessage =
+            'Access denied. Please verify your license has the required permissions.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'API endpoint not found.';
+        } else {
+          errorMessage = `API Error: ${error.message}`;
+        }
+      }
+
+      vscode.window.showErrorMessage(errorMessage);
+
+      // Hide loading state
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'apiDataReceived',
+          data: null,
+          error: errorMessage,
+          loading: false,
+        });
+      }
+    }
+  }
+
+  private _refreshData() {
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'updateData',
+        data: this._getSampleData(),
+      });
+    }
+  }
+
+  private async _saveLicenseKey(licenseKey: string) {
+    try {
+      // Save license key to VS Code settings
+      await vscode.workspace
+        .getConfiguration('flyonui')
+        .update('licenseKey', licenseKey, vscode.ConfigurationTarget.Global);
+
+      // Validate the license key
+      const isValid = await this._validateLicenseKey(licenseKey);
+
+      if (isValid) {
+        vscode.window.showInformationMessage(
+          'License key saved successfully! ✅',
+        );
+        // Update the UI to show license status
+        if (this._view) {
+          this._view.webview.postMessage({
+            type: 'licenseValidated',
+            isValid: true,
+            licenseKey: licenseKey,
+          });
+        }
+      } else {
+        vscode.window.showWarningMessage(
+          'Invalid license key. Please check and try again.',
+        );
+        if (this._view) {
+          this._view.webview.postMessage({
+            type: 'licenseValidated',
+            isValid: false,
+            licenseKey: licenseKey,
+          });
+        }
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage('Failed to save license key');
+      console.error('Error saving license key:', error);
+    }
+  }
+
+  private async _validateLicense(licenseKey: string) {
+    const isValid = await this._validateLicenseKey(licenseKey);
+    if (this._view) {
+      this._view.webview.postMessage({
+        type: 'licenseValidated',
+        isValid: isValid,
+        licenseKey: licenseKey,
+      });
+    }
+  }
+
+  private async _validateLicenseKey(licenseKey: string): Promise<boolean> {
+    // For now, we'll implement a simple validation
+    // In a real implementation, you would call the FlyonUI API to validate the license
+
+    if (!licenseKey || licenseKey.trim().length === 0) {
+      return false;
+    }
+
+    // Basic validation - will replace this with API call later
+
+    return true;
+  }
+
+  private _getCurrentLicenseKey(): string {
+    const config = vscode.workspace.getConfiguration('flyonui');
+    return config.get('licenseKey', '');
+  }
+
+  private _getSampleData() {
+    const currentLicenseKey = this._getCurrentLicenseKey();
+    return {
+      licenseInfo: {
+        hasLicense: currentLicenseKey.length > 0,
+        licenseKey: currentLicenseKey,
+        isValid: currentLicenseKey.length > 0, // This would be determined by actual validation
+      },
+      apiData: null, // Will be populated when API call is made
+      loading: false,
+      error: null,
+    };
+  }
+
+  private _getHtmlForWebview(webview: vscode.Webview) {
+    // Get path to media directory
+    const mediaPath = vscode.Uri.joinPath(
+      this._extensionUri,
+      'src',
+      'webviews',
+      'media',
+    );
+
+    // Get URIs for CSS and JS files
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(mediaPath, 'api-panel.css'),
+    );
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(mediaPath, 'api-panel.js'),
+    );
+
+    // Read HTML template
+    const htmlPath = vscode.Uri.joinPath(mediaPath, 'api-panel.html');
+    let htmlContent: string;
+
+    try {
+      const htmlBytes = fs.readFileSync(htmlPath.fsPath);
+      htmlContent = htmlBytes.toString();
+    } catch (error) {
+      console.error('Error reading HTML template:', error);
+      return this._getErrorHtml('Failed to load HTML template');
+    }
+
+    // Replace placeholders with actual URIs
+    htmlContent = htmlContent
+      .replace('{{styleUri}}', styleUri.toString())
+      .replace('{{scriptUri}}', scriptUri.toString());
+
+    return htmlContent;
+  }
+
+  private _getErrorHtml(errorMessage: string): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-errorForeground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>Error Loading Panel</h2>
+    <p>${errorMessage}</p>
+</body>
+</html>`;
+  }
+}

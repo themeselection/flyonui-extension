@@ -2,6 +2,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Load environment variables from the root .env file
 const envPath = path.resolve(__dirname, '../../.env');
@@ -35,6 +36,17 @@ const config = {
         process.env.STAGEWISE_CONSOLE_URL,
       ),
       'process.env.API_URL': JSON.stringify(process.env.API_URL),
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'src/webviews/media',
+          to: 'src/webviews/media',
+          globOptions: {
+            ignore: ['**/.DS_Store'],
+          },
+        },
+      ],
     }),
   ],
   externals: {
