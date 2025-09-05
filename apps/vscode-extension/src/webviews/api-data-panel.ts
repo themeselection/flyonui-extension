@@ -228,7 +228,17 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
       const cssSnippet = blocksData.find((block: any) => block.fileType === 'css' && block.code);
       const jsSnippet = blocksData.find((block: any) => block.fileType === 'js' && block.code);
       
-      return [htmlSnippet?.code, cssSnippet?.code, jsSnippet?.code].filter(Boolean).join('\n\n');
+      const parts = [];
+      if (htmlSnippet?.code) {
+        parts.push(`// HTML Code\n\n${htmlSnippet.code}`);
+      }
+      if (cssSnippet?.code) {
+        parts.push(`// CSS Code\n\n${cssSnippet.code}`);
+      }
+      if (jsSnippet?.code) {
+        parts.push(`// JS Code\n\n${jsSnippet.code}`);
+      }
+      return parts.join('\n\n');
 
     } catch (error) {
       console.error('Error fetching block code from API:', error);
@@ -264,27 +274,24 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
       const code = await this._fetchBlockCodeFromAPI(dataPath);
       
       if (code) {
-        const prompt = `I need help implementing this FlyonUI component named "${componentName}". 
+        const prompt = `You need to Integrate this FlyonUI component "${componentName}" in this codebase. 
 
-Here is the HTML/code for the component:
+Here is the HTML/CSS/JS code for the component:
 
 \`\`\`html
 ${code}
 \`\`\`
 
 Please help me:
-1. Analyze this FlyonUI component code
+1. Analyze currently existing codebase and our FlyonUI Component Code and see how this component can fit in
 2. Explain what this component does and how it works
-3. Help me integrate it into my project 
-4. Check if I need any additional CSS classes or dependencies
-5. Provide any necessary setup instructions for FlyonUI components
-
-Component path: ${dataPath}`;
+3. Provided code is in HTML/CSS/JS format, if the codebase is using any specific framework (React, Vue, Angular, etc.), convert the code accordingly
+4. Check if I need any additional CSS classes or dependencies to use this component
+5. Integrate this component into the codebase and provide the updated code files
+`;
 
         await dispatchAgentCall({
           prompt: prompt,
-          files: [],
-          images: []
         });
 
         vscode.window.showInformationMessage('🤖 Code sent to IDE agent successfully!');
