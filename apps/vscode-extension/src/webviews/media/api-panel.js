@@ -103,71 +103,15 @@ function createComponentCard(component, index) {
   card.className = 'component-card';
   card.setAttribute('data-component-index', index);
 
-  // Generate a simple icon based on component name
-  const icon = getComponentIcon(component.name);
-
   card.innerHTML = `
+    <img src="${escapeHtml(component.imgSrc || '')}" alt="${escapeHtml(component.name)}" class="component-image" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')" />
     <div class="component-header">
       <h3 class="component-name">${escapeHtml(component.name)}</h3>
-      <span class="component-icon">${icon}</span>
     </div>
-    <p class="component-description">${escapeHtml(component.description || 'No description available')}</p>
-    <div class="component-footer">
-      <code class="component-path">${escapeHtml(component.path)}</code>
-      <div class="component-actions">
-        <button class="action-btn primary" onclick="copyComponentPath('${escapeHtml(component.path)}')">
-          📋 Copy
-        </button>
-        <button class="action-btn" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')">
-          👁️ View
-        </button>
-      </div>
-    </div>
+   
   `;
 
-  // Add click handler for the entire card
-  card.addEventListener('click', (e) => {
-    // Don't trigger if clicking on buttons
-    if (!e.target.classList.contains('action-btn')) {
-      copyComponentPath(component.path);
-    }
-  });
-
   return card;
-}
-
-function getComponentIcon(name) {
-  const iconMap = {
-    grid: '🏗️',
-    card: '🎴',
-    button: '🔘',
-    form: '📝',
-    input: '📝',
-    modal: '🪟',
-    menu: '📋',
-    nav: '🧭',
-    table: '📊',
-    chart: '📈',
-    avatar: '👤',
-    badge: '🏷️',
-    alert: '⚠️',
-    toast: '🍞',
-    tab: '📑',
-    accordion: '📁',
-    slider: '🎚️',
-    progress: '📊',
-    loading: '⏳',
-    spinner: '🔄',
-  };
-
-  const nameLower = name.toLowerCase();
-  for (const [key, icon] of Object.entries(iconMap)) {
-    if (nameLower.includes(key)) {
-      return icon;
-    }
-  }
-
-  return '🧩'; // Default component icon
 }
 
 function escapeHtml(text) {
@@ -193,6 +137,36 @@ function openComponent(name, path) {
     name: name,
     path: path,
   });
+}
+
+function copyBlockCode(path) {
+  // Use VS Code API to copy to clipboard
+  vscode.postMessage({
+    type: 'copyToClipboard',
+    text: path,
+  });
+
+  // Show temporary feedback
+  showCopyFeedback();
+}
+
+function copyBlockCode(path) {
+  vscode.postMessage({
+    type: 'copyBlockCode',
+    path: path,
+  });
+}
+
+function sendToIDEAgent(path, name) {
+  vscode.postMessage({
+    type: 'sendToIDEAgent',
+    path: path,
+    name: name,
+  });
+}
+
+function getBlockCode(){
+  
 }
 
 function showCopyFeedback() {
@@ -272,6 +246,58 @@ function renderFilteredComponents(components) {
   });
 }
 
+function filterBlocks(searchTerm) {
+  const blocks = window.originalBlocks || [];
+  const searchLower = searchTerm.toLowerCase().trim();
+
+  if (!searchLower) {
+    // Show all blocks
+    renderFilteredBlocks(blocks);
+    return;
+  }
+
+  // Filter blocks based on name, title, or path
+  const filtered = blocks.filter((block) => {
+    const blockName = block.name || block.title || '';
+    return (
+      blockName.toLowerCase().includes(searchLower) ||
+      block.path?.toLowerCase().includes(searchLower) ||
+      block.description?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  renderFilteredBlocks(filtered);
+}
+
+function renderFilteredBlocks(blocks) {
+  const blocksContainer = document.getElementById('blocks-container');
+  const countContainer = document.getElementById('blocks-count');
+
+  if (!blocksContainer || !countContainer) return;
+
+  // Update count
+  countContainer.textContent = `Found ${blocks.length} blocks`;
+
+  // Clear and render filtered blocks
+  blocksContainer.innerHTML = '';
+
+  if (blocks.length === 0) {
+    const noResults = document.createElement('div');
+    noResults.className = 'no-results';
+    noResults.innerHTML = `
+      <p>🔍 No blocks found</p>
+      <p>Try adjusting your search terms</p>
+    `;
+    blocksContainer.appendChild(noResults);
+    return;
+  }
+
+  blocks.forEach((block, index) => {
+    const blockCard = createBlockCard(block, index);
+    blocksContainer.appendChild(blockCard);
+  });
+}
+
 function showComponentDetails(blocks, componentName, componentPath, error) {
   const emptyState = document.getElementById('empty-state');
   const errorState = document.getElementById('error-state');
@@ -319,7 +345,6 @@ function renderComponentDetails(blocks, componentName, componentPath, error) {
       ← Back to Components
     </button>
     <h2 class="details-title">${escapeHtml(componentName)}</h2>
-    <p class="details-path">${escapeHtml(componentPath)}</p>
   `;
   grid.appendChild(header);
 
@@ -348,9 +373,34 @@ function renderComponentDetails(blocks, componentName, componentPath, error) {
     return;
   }
 
+  // Add search functionality for blocks
+  const searchContainer = document.createElement('div');
+  searchContainer.className = 'search-container';
+  searchContainer.innerHTML = `
+    <input 
+      type="text" 
+      class="search-input" 
+      id="blocks-search" 
+      placeholder="🔍 Search blocks..."
+      oninput="filterBlocks(this.value)"
+    />
+  `;
+  grid.appendChild(searchContainer);
+
+  // Add blocks count
+  const countContainer = document.createElement('div');
+  countContainer.className = 'blocks-count';
+  countContainer.id = 'blocks-count';
+  countContainer.textContent = `Found ${blocks.length} blocks`;
+  grid.appendChild(countContainer);
+
+  // Store original blocks for filtering
+  window.originalBlocks = blocks;
+
   // Create blocks container
   const blocksContainer = document.createElement('div');
   blocksContainer.className = 'blocks-container';
+  blocksContainer.id = 'blocks-container';
 
   blocks.forEach((block, index) => {
     const blockCard = createBlockCard(block, index);
@@ -366,55 +416,20 @@ function createBlockCard(block, index) {
 
   // Handle different possible block structures
   const blockName = block.name || block.title || `Block ${index + 1}`;
-  const blockDescription =
-    block.description || block.blockDescription || 'No description available';
-  const blockCode = block.code || block.html || block.template || '';
   const imgUrl = `https://cdn.flyonui.com/fy-assets/extension${block.path}.png`;
 
   card.innerHTML = `
-    ${imgUrl ? `<img src="${imgUrl}" alt="${escapeHtml(blockName)}" class="contain h-[200px] w-[250px] rounded-lg border border-border object-cover shadow-md" />` : ''}
+    ${imgUrl ? `<img src="${imgUrl}" alt="${escapeHtml(blockName)}" class="component-image" />` : ''}
     <div class="block-header">
       <h3 class="block-name">${escapeHtml(blockName)}</h3>
-      <span class="block-index">#${index + 1}</span>
-    </div>
-    <p class="block-description">${escapeHtml(blockDescription)}</p>
-    ${
-      blockCode
-        ? `
-      <div class="block-code-container">
-        <div class="code-header">
-          <span class="code-label">Code</span>
-          <button class="copy-code-btn" data-block-index="${index}">
-            📋 Copy Code
-          </button>
-        </div>
-        <pre class="block-code"><code>${escapeHtml(blockCode)}</code></pre>
+      <div class="block-actions">
+        <button onclick="copyBlockCode('${escapeHtml(block.path)}')">📋 Copy Code</button>
+        <button onclick="sendToIDEAgent('${escapeHtml(block.path)}', '${escapeHtml(blockName)}')">🤖 Send to IDE Agent</button>
       </div>
-    `
-        : ''
-    }
+    </div>
   `;
 
-  // Add event listener for copy button if code exists
-  if (blockCode) {
-    const copyBtn = card.querySelector('.copy-code-btn');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        copyBlockCode(blockCode);
-      });
-    }
-  }
-
   return card;
-}
-
-function copyBlockCode(code) {
-  vscode.postMessage({
-    type: 'copyToClipboard',
-    text: code,
-  });
-
-  showCopyFeedback();
 }
 
 function goBackToComponents() {
@@ -581,8 +596,12 @@ window.addEventListener('message', (event) => {
 
 // Make functions globally accessible
 window.filterComponents = filterComponents;
+window.filterBlocks = filterBlocks;
 window.openComponent = openComponent;
 window.goBackToComponents = goBackToComponents;
+window.copyBlockCode = copyBlockCode;
+window.sendToIDEAgent = sendToIDEAgent;
+window.addCodeToCursorPosition = addCodeToCursorPosition;
 
 // Initialize UI when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {

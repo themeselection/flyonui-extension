@@ -338,8 +338,7 @@ body {
 .component-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+    justify-content: center;
 }
 
 .component-name {
@@ -385,6 +384,17 @@ body {
     margin-top: 8px;
 }
 
+.component-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    cursor: pointer;
+}
+
 .component-actions {
     display: flex;
     gap: 8px;
@@ -415,6 +425,13 @@ body {
 }
 
 .components-count {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.blocks-count {
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
     margin-bottom: 12px;
@@ -520,7 +537,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .block-name {
@@ -528,23 +546,35 @@ body {
     font-weight: 600;
     color: var(--vscode-foreground);
     margin: 0;
+    width: 100%;
 }
 
-.block-index {
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    background: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-weight: 500;
+.block-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
 }
 
-.block-description {
+.block-actions button {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: 1px solid var(--vscode-button-border);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
     font-size: 12px;
-    color: var(--vscode-descriptionForeground);
-    line-height: 1.4;
-    margin: 0 0 16px 0;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.block-actions button:hover {
+    background: var(--vscode-button-hoverBackground);
+}
+
+.block-actions button:active {
+    background: var(--vscode-button-background);
+    transform: translateY(1px);
 }
 
 .block-code-container {

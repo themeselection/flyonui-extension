@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
+import { dispatchAgentCall } from '../utils/dispatch-agent-call';
 
 export class ApiDataProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'stagewise.apiDataView';
@@ -57,6 +58,12 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
           vscode.window.showInformationMessage(
             `Opening component: ${data.name} (${data.path})`,
           );
+          break;
+        case 'copyBlockCode':
+          await this._copyBlockCode(data.path);
+          break;
+        case 'sendToIDEAgent':
+          await this._sendToIDEAgent(data.path, data.name);
           break;
       }
     });
@@ -132,7 +139,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         blocksData = [parsedData];
       }
 
-      console.log(`Processed blocks data for ${componentName}:`, blocksData);
 
       // Send data to webview
       if (this._view) {
@@ -143,11 +149,9 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
           componentPath: dataPath,
           loading: false,
         };
-        console.log('Sending component details message:', message);
         this._view.webview.postMessage(message);
       }
     } catch (error) {
-      console.error('Error fetching FlyonUI block data:', error);
       vscode.window.showErrorMessage(
         'Failed to fetch block data from FlyonUI API',
       );
@@ -163,6 +167,133 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
           error: 'Failed to fetch block data',
         });
       }
+    }
+  }
+
+  private async _fetchBlockCodeFromAPI(dataPath: string): Promise<string | null> {
+    const licenseKey = this._getCurrentLicenseKey();
+
+    if (!licenseKey) {
+      vscode.window.showWarningMessage(
+        'Please enter a valid license key first',
+      );
+      return null;
+    }
+
+    try {
+      const url = `https://flyonui.com/api/mcp${dataPath}?type=mcp`;
+      const headers = {
+        Accept: '*/*',
+        'Content-Type': 'application/json',
+        'x-license-key': licenseKey,
+      };
+
+      const response = await fetch(url, { method: 'GET', headers });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData: any = await response.json();
+
+      // Handle case where API returns a JSON string instead of an object
+      let parsedData: any;
+      if (typeof apiData === 'string') {
+        parsedData = JSON.parse(apiData);
+      } else {
+        parsedData = apiData;
+      }
+
+      console.log(`Raw block data from 210 ${dataPath}:`, parsedData.snippets);
+
+      // Extract the code from the response
+      // First, try to get blocks data similar to the existing method
+      let blocksData = null;
+      if (Array.isArray(parsedData.snippets)) 
+        blocksData = parsedData.snippets;
+      else
+        blocksData = [parsedData];
+      
+      console.log(`Extracted blocks data from 222 ${dataPath}:`, blocksData);
+
+      // Format the code in each snippet
+      blocksData.forEach((block: any) => {
+        if (block.code) {
+          block.code = block.code.replace(/\\n/g, '\n').replace(/ {4}/g, '  ');
+        }
+      });
+
+      // Find the HTML snippet
+      const htmlSnippet = blocksData.find((block: any) => block.fileType === 'html' && block.code);
+      const cssSnippet = blocksData.find((block: any) => block.fileType === 'css' && block.code);
+      const jsSnippet = blocksData.find((block: any) => block.fileType === 'js' && block.code);
+      
+      return [htmlSnippet?.code, cssSnippet?.code, jsSnippet?.code].filter(Boolean).join('\n\n');
+
+    } catch (error) {
+      console.error('Error fetching block code from API:', error);
+      vscode.window.showErrorMessage(
+        'Failed to fetch block code from FlyonUI API',
+      );
+      return null;
+    }
+  }
+
+  private async _copyBlockCode(dataPath: string): Promise<void> {
+    try {
+      vscode.window.showInformationMessage('⏳ Fetching block code...');
+      
+      const code = await this._fetchBlockCodeFromAPI(dataPath);
+      
+      if (code) {
+        await vscode.env.clipboard.writeText(code);
+        vscode.window.showInformationMessage('📋 Block code copied to clipboard!');
+      } else {
+        vscode.window.showErrorMessage('Failed to fetch block code');
+      }
+    } catch (error) {
+      console.error('Error copying block code:', error);
+      vscode.window.showErrorMessage('Failed to copy block code');
+    }
+  }
+
+  private async _sendToIDEAgent(dataPath: string, componentName: string): Promise<void> {
+    try {
+      vscode.window.showInformationMessage('⏳ Fetching block code and sending to IDE agent...');
+      
+      const code = await this._fetchBlockCodeFromAPI(dataPath);
+      
+      if (code) {
+        const prompt = `I need help implementing this FlyonUI component named "${componentName}". 
+
+Here is the HTML/code for the component:
+
+\`\`\`html
+${code}
+\`\`\`
+
+Please help me:
+1. Analyze this FlyonUI component code
+2. Explain what this component does and how it works
+3. Help me integrate it into my project 
+4. Check if I need any additional CSS classes or dependencies
+5. Provide any necessary setup instructions for FlyonUI components
+
+Component path: ${dataPath}`;
+
+        await dispatchAgentCall({
+          prompt: prompt,
+          files: [],
+          images: []
+        });
+
+        vscode.window.showInformationMessage('🤖 Code sent to IDE agent successfully!');
+      } else {
+        vscode.window.showErrorMessage('Failed to fetch block code for IDE agent');
+      }
+    } catch (error) {
+      console.error('Error sending to IDE agent:', error);
+      vscode.window.showErrorMessage('Failed to send code to IDE agent');
     }
   }
 
