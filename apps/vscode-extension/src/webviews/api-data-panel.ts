@@ -65,6 +65,9 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         case 'sendToIDEAgent':
           await this._sendToIDEAgent(data.path, data.name);
           break;
+        case 'previewBlock':
+          await this._previewBlock(data.path, data.name);
+          break;
       }
     });
   }
@@ -75,6 +78,36 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         type: 'initialize',
         data: this._getSampleData(),
       });
+    }
+  }
+
+  private async _previewBlock(path: string, componentName: string) {
+    const licenseKey = this._getCurrentLicenseKey();
+
+    try {
+      const url = `https://flyonui.com/api/mcp${path}?type=mcp`;
+      const headers = {
+        Accept: '*/*',
+        'Content-Type': 'application/json',
+        'x-license-key': licenseKey,
+      };
+
+      const response = await fetch(url, { method: 'GET', headers });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiData: any = await response.json();
+      const previewUrl = apiData.iframeSrc;
+
+      if (previewUrl) {
+        vscode.env.openExternal(vscode.Uri.parse(previewUrl));
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        'Failed to fetch block preview from FlyonUI API',
+      );
     }
   }
 

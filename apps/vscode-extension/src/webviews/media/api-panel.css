@@ -620,6 +620,13 @@ body {
     border-color: var(--vscode-debugIcon-startForeground);
 }
 
+.agent-btn{
+    &.icon-btn:before {
+        transform: translateX(-100%) !important;
+        left: 100% !important;
+    }
+}
+
 /* Tooltip styles */
 .icon-btn::before {
     content: attr(title);
