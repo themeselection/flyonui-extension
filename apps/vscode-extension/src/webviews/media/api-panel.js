@@ -12,11 +12,6 @@ function saveLicenseKey() {
   const input = document.getElementById('license-key-input');
   const licenseKey = input.value.trim();
 
-  if (!licenseKey) {
-    alert('Please enter a license key');
-    return;
-  }
-
   // Disable button while saving
   const saveBtn = document.getElementById('save-license-btn');
   saveBtn.disabled = true;
@@ -43,10 +38,6 @@ function fetchApiData() {
 function validateLicense() {
   const input = document.getElementById('license-key-input');
   const licenseKey = input.value.trim();
-
-  if (!licenseKey) {
-    return;
-  }
 
   vscode.postMessage({
     type: 'validateLicense',
@@ -107,8 +98,12 @@ function createComponentCard(component, index) {
     <img src="${escapeHtml(component.imgSrc || '')}" alt="${escapeHtml(component.name)}" class="component-image" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')" />
     <div class="component-header">
       <h3 class="component-name">${escapeHtml(component.name)}</h3>
+      <button class="icon-btn explore-btn" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')" title="Explore component blocks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
     </div>
-   
   `;
 
   return card;
@@ -140,17 +135,6 @@ function openComponent(name, path) {
 }
 
 function copyBlockCode(path) {
-  // Use VS Code API to copy to clipboard
-  vscode.postMessage({
-    type: 'copyToClipboard',
-    text: path,
-  });
-
-  // Show temporary feedback
-  showCopyFeedback();
-}
-
-function copyBlockCode(path) {
   vscode.postMessage({
     type: 'copyBlockCode',
     path: path,
@@ -163,10 +147,6 @@ function sendToIDEAgent(path, name) {
     path: path,
     name: name,
   });
-}
-
-function getBlockCode(){
-  
 }
 
 function showCopyFeedback() {
@@ -423,8 +403,21 @@ function createBlockCard(block, index) {
     <div class="block-header">
       <h3 class="block-name">${escapeHtml(blockName)}</h3>
       <div class="block-actions">
-        <button onclick="copyBlockCode('${escapeHtml(block.path)}')">📋 Copy Code</button>
-        <button onclick="sendToIDEAgent('${escapeHtml(block.path)}', '${escapeHtml(blockName)}')">🤖 Send to IDE Agent</button>
+        <button class="icon-btn copy-btn" onclick="copyBlockCode('${escapeHtml(block.path)}')" title="Copy code to clipboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+        <button class="icon-btn agent-btn" onclick="sendToIDEAgent('${escapeHtml(block.path)}', '${escapeHtml(blockName)}')" title="Send to IDE Agent">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <circle cx="12" cy="5" r="2"></circle>
+            <path d="M12 7v4"></path>
+            <line x1="8" y1="16" x2="8" y2="16"></line>
+            <line x1="16" y1="16" x2="16" y2="16"></line>
+          </svg>
+        </button>
       </div>
     </div>
   `;

@@ -69,10 +69,13 @@ body {
 }
 
 .section-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
-    margin-bottom: 12px;
+    margin: 0; /* Remove default margin for better alignment */
     color: var(--vscode-panel-title-foreground);
+    display: flex;
+    align-items: center; /* Center the text vertically within its container */
+    line-height: 1.4;
 }
 
 .api-section {
@@ -83,7 +86,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    min-height: 32px; /* Ensure consistent height with buttons */
 }
 
 .fetch-btn {
@@ -111,12 +115,9 @@ body {
 
 .api-data-container {
     background: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    padding: 12px;
     margin-top: 12px;
     max-height: auto;
-    overflow-y: auto;
 }
 
 .api-data-container pre {
@@ -310,16 +311,14 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
-    padding: 4px;
 }
 
 .component-card {
     background: var(--vscode-editor-inactiveSelectionBackground);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     transition: all 0.2s ease;
-    cursor: pointer;
     position: relative;
     overflow: hidden;
 }
@@ -338,7 +337,9 @@ body {
 .component-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 32px; /* Ensure consistent height with buttons */
 }
 
 .component-name {
@@ -346,7 +347,25 @@ body {
     font-weight: 600;
     color: var(--vscode-foreground);
     margin: 0;
-    line-height: 1.3;
+    line-height: 1.4; /* Improved line height for better vertical alignment */
+    flex: 1;
+    display: flex;
+    align-items: center; /* Center the text vertically within its container */
+}
+
+.explore-btn {
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.component-card:hover .explore-btn {
+    opacity: 1;
+}
+
+.explore-btn:hover {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
 }
 
 .component-icon {
@@ -386,13 +405,17 @@ body {
 
 .component-image {
     width: 100%;
-    height: auto;
-    object-fit: contain;
-    margin-bottom: 6px;
-    border-radius: 12px;
+    object-fit: cover;
+    margin-bottom: 8px;
+    border-radius: 8px;
     background: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.component-image:hover {
+    border-color: var(--vscode-focusBorder);
 }
 
 .component-actions {
@@ -427,7 +450,6 @@ body {
 .components-count {
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
-    margin-bottom: 12px;
     text-align: center;
 }
 
@@ -439,7 +461,7 @@ body {
 }
 
 .search-container {
-    margin-bottom: 16px;
+    margin-bottom: 6px;
 }
 
 .search-input {
@@ -474,9 +496,6 @@ body {
 
 /* Component Details Styles */
 .details-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--vscode-panel-border);
 }
 
 .back-btn {
@@ -496,10 +515,10 @@ body {
 }
 
 .details-title {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--vscode-foreground);
-    margin: 0 0 8px 0;
+    margin: 8px 0;
 }
 
 .details-path {
@@ -515,8 +534,8 @@ body {
 }
 
 .blocks-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
 }
 
@@ -524,21 +543,22 @@ body {
     background: var(--vscode-editor-inactiveSelectionBackground);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     transition: all 0.2s ease;
 }
 
 .block-card:hover {
     background: var(--vscode-list-hoverBackground);
     border-color: var(--vscode-focusBorder);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .block-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-direction: column;
     gap: 12px;
+    min-height: 32px; /* Ensure consistent height with buttons */
 }
 
 .block-name {
@@ -546,35 +566,89 @@ body {
     font-weight: 600;
     color: var(--vscode-foreground);
     margin: 0;
-    width: 100%;
+    flex: 1;
+    line-height: 1.4; /* Improved line height for better vertical alignment */
+    display: flex;
+    align-items: center; /* Center the text vertically within its container */
 }
 
 .block-actions {
     display: flex;
-    flex-direction: column;
     gap: 8px;
-    width: 100%;
+    flex-shrink: 0;
+    align-items: center; /* Ensure buttons are centered vertically */
 }
 
-.block-actions button {
+/* Icon button styles */
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--vscode-button-border);
+    border-radius: 6px;
+    background: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    position: relative;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.icon-btn:hover {
+    background: var(--vscode-button-hoverBackground);
+    border-color: var(--vscode-focusBorder);
+    transform: translateY(-1px);
+}
+
+.icon-btn:active {
+    transform: translateY(0);
+}
+
+.icon-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
+.copy-btn:hover {
     background: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
-    border: 1px solid var(--vscode-button-border);
-    padding: 8px 12px;
+}
+
+.agent-btn:hover {
+    background: var(--vscode-debugIcon-startForeground);
+    color: white;
+    border-color: var(--vscode-debugIcon-startForeground);
+}
+
+/* Tooltip styles */
+.icon-btn::before {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--vscode-editorHoverWidget-background);
+    color: var(--vscode-editorHoverWidget-foreground);
+    padding: 6px 8px;
     border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
     transition: all 0.2s ease;
-    text-align: left;
+    pointer-events: none;
+    z-index: 1000;
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.block-actions button:hover {
-    background: var(--vscode-button-hoverBackground);
-}
-
-.block-actions button:active {
-    background: var(--vscode-button-background);
-    transform: translateY(1px);
+.icon-btn:hover::before {
+    opacity: 1;
+    visibility: visible;
 }
 
 .block-code-container {
@@ -646,3 +720,14 @@ body {
     85% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-10px); }
 }
+
+/* Loading and hover states */
+.component-card:hover .component-image {
+    filter: brightness(1.05);
+}
+
+.block-card:hover .component-image {
+    filter: brightness(1.05);
+}
+
+

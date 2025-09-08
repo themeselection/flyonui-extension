@@ -92,13 +92,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
 
     const licenseKey = this._getCurrentLicenseKey();
 
-    if (!licenseKey) {
-      vscode.window.showWarningMessage(
-        'Please enter a valid license key first',
-      );
-      return;
-    }
-
     try {
       // Show loading state
       const url = `https://flyonui.com/api/mcp${dataPath}?type=mcp`;
@@ -139,7 +132,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         blocksData = [parsedData];
       }
 
-
       // Send data to webview
       if (this._view) {
         const message = {
@@ -170,15 +162,10 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async _fetchBlockCodeFromAPI(dataPath: string): Promise<string | null> {
+  private async _fetchBlockCodeFromAPI(
+    dataPath: string,
+  ): Promise<string | null> {
     const licenseKey = this._getCurrentLicenseKey();
-
-    if (!licenseKey) {
-      vscode.window.showWarningMessage(
-        'Please enter a valid license key first',
-      );
-      return null;
-    }
 
     try {
       const url = `https://flyonui.com/api/mcp${dataPath}?type=mcp`;
@@ -187,6 +174,8 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         'Content-Type': 'application/json',
         'x-license-key': licenseKey,
       };
+
+      console.log('licenseKey:', licenseKey);
 
       const response = await fetch(url, { method: 'GET', headers });
 
@@ -209,11 +198,9 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
       // Extract the code from the response
       // First, try to get blocks data similar to the existing method
       let blocksData = null;
-      if (Array.isArray(parsedData.snippets)) 
-        blocksData = parsedData.snippets;
-      else
-        blocksData = [parsedData];
-      
+      if (Array.isArray(parsedData.snippets)) blocksData = parsedData.snippets;
+      else blocksData = [parsedData];
+
       console.log(`Extracted blocks data from 222 ${dataPath}:`, blocksData);
 
       // Format the code in each snippet
@@ -224,10 +211,16 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
       });
 
       // Find the HTML snippet
-      const htmlSnippet = blocksData.find((block: any) => block.fileType === 'html' && block.code);
-      const cssSnippet = blocksData.find((block: any) => block.fileType === 'css' && block.code);
-      const jsSnippet = blocksData.find((block: any) => block.fileType === 'js' && block.code);
-      
+      const htmlSnippet = blocksData.find(
+        (block: any) => block.fileType === 'html' && block.code,
+      );
+      const cssSnippet = blocksData.find(
+        (block: any) => block.fileType === 'css' && block.code,
+      );
+      const jsSnippet = blocksData.find(
+        (block: any) => block.fileType === 'js' && block.code,
+      );
+
       const parts = [];
       if (htmlSnippet?.code) {
         parts.push(`// HTML Code\n\n${htmlSnippet.code}`);
@@ -239,7 +232,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         parts.push(`// JS Code\n\n${jsSnippet.code}`);
       }
       return parts.join('\n\n');
-
     } catch (error) {
       console.error('Error fetching block code from API:', error);
       vscode.window.showErrorMessage(
@@ -252,12 +244,14 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
   private async _copyBlockCode(dataPath: string): Promise<void> {
     try {
       vscode.window.showInformationMessage('⏳ Fetching block code...');
-      
+
       const code = await this._fetchBlockCodeFromAPI(dataPath);
-      
+
       if (code) {
         await vscode.env.clipboard.writeText(code);
-        vscode.window.showInformationMessage('📋 Block code copied to clipboard!');
+        vscode.window.showInformationMessage(
+          '📋 Block code copied to clipboard!',
+        );
       } else {
         vscode.window.showErrorMessage('Failed to fetch block code');
       }
@@ -267,12 +261,17 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async _sendToIDEAgent(dataPath: string, componentName: string): Promise<void> {
+  private async _sendToIDEAgent(
+    dataPath: string,
+    componentName: string,
+  ): Promise<void> {
     try {
-      vscode.window.showInformationMessage('⏳ Fetching block code and sending to IDE agent...');
-      
+      vscode.window.showInformationMessage(
+        '⏳ Fetching block code and sending to IDE agent...',
+      );
+
       const code = await this._fetchBlockCodeFromAPI(dataPath);
-      
+
       if (code) {
         const prompt = `You need to Integrate this FlyonUI component "${componentName}" in this codebase. 
 
@@ -282,7 +281,7 @@ Here is the HTML/CSS/JS code for the component:
 ${code}
 \`\`\`
 
-Please help me:
+Follow the below instructions to integrate this component into the codebase:
 1. Analyze currently existing codebase and our FlyonUI Component Code and see how this component can fit in
 2. Explain what this component does and how it works
 3. Provided code is in HTML/CSS/JS format, if the codebase is using any specific framework (React, Vue, Angular, etc.), convert the code accordingly
@@ -294,9 +293,13 @@ Please help me:
           prompt: prompt,
         });
 
-        vscode.window.showInformationMessage('🤖 Code sent to IDE agent successfully!');
+        vscode.window.showInformationMessage(
+          '🤖 Code sent to IDE agent successfully!',
+        );
       } else {
-        vscode.window.showErrorMessage('Failed to fetch block code for IDE agent');
+        vscode.window.showErrorMessage(
+          'Failed to fetch block code for IDE agent',
+        );
       }
     } catch (error) {
       console.error('Error sending to IDE agent:', error);
@@ -306,13 +309,6 @@ Please help me:
 
   private async _fetchFlyonuiData() {
     const licenseKey = this._getCurrentLicenseKey();
-
-    if (!licenseKey) {
-      vscode.window.showWarningMessage(
-        'Please enter a valid license key first',
-      );
-      return;
-    }
 
     try {
       // Show loading state
@@ -468,12 +464,7 @@ Please help me:
     // For now, we'll implement a simple validation
     // In a real implementation, you would call the FlyonUI API to validate the license
 
-    if (!licenseKey || licenseKey.trim().length === 0) {
-      return false;
-    }
-
-    // Basic validation - will replace this with API call later
-
+    // Allow blank license keys
     return true;
   }
 
