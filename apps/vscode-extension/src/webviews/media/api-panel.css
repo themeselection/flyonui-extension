@@ -192,14 +192,29 @@ body {
     background: var(--vscode-editor-inactiveSelectionBackground);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 6px;
-    padding: 16px;
+    padding: 8px;
     margin-bottom: 20px;
 }
 
 .license-header {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    justify-content: space-between;
+}
+
+#license-manage-btn {
+    height: 24px !important;
+    width: 24px !important;
+}
+
+.license-content {
+    margin-top: 12px;
+}
+
+.license-info{
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .license-title {

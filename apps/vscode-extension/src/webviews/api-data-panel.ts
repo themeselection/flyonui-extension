@@ -46,9 +46,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         case 'fetchApiData':
           await this._fetchFlyonuiData();
           break;
-        case 'requestInitialData':
-          this._sendInitialData();
-          break;
         case 'copyToClipboard':
           await vscode.env.clipboard.writeText(data.text);
           vscode.window.showInformationMessage('📋 Path copied to clipboard!');
@@ -70,15 +67,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
           break;
       }
     });
-  }
-
-  private _sendInitialData() {
-    if (this._view) {
-      this._view.webview.postMessage({
-        type: 'initialize',
-        data: this._getSampleData(),
-      });
-    }
   }
 
   private async _previewBlock(path: string, componentName: string) {
@@ -437,7 +425,7 @@ Follow the below instructions to integrate this component into the codebase:
     if (this._view) {
       this._view.webview.postMessage({
         type: 'updateData',
-        data: this._getSampleData(),
+        data: this._fetchFlyonuiData(),
       });
     }
   }
@@ -504,20 +492,6 @@ Follow the below instructions to integrate this component into the codebase:
   private _getCurrentLicenseKey(): string {
     const config = vscode.workspace.getConfiguration('flyonui');
     return config.get('licenseKey', '');
-  }
-
-  private _getSampleData() {
-    const currentLicenseKey = this._getCurrentLicenseKey();
-    return {
-      licenseInfo: {
-        hasLicense: currentLicenseKey.length > 0,
-        licenseKey: currentLicenseKey,
-        isValid: currentLicenseKey.length > 0, // This would be determined by actual validation
-      },
-      apiData: null, // Will be populated when API call is made
-      loading: false,
-      error: null,
-    };
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {

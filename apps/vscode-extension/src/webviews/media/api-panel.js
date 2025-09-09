@@ -476,8 +476,6 @@ function showLoadingState(loading) {
 }
 
 function showApiData(data, error) {
-  console.log('showApiData called with data:', data, 'error:', error);
-
   const emptyState = document.getElementById('empty-state');
   const errorState = document.getElementById('error-state');
   const dataContainer = document.getElementById('api-data-container');
@@ -516,7 +514,7 @@ function updateLicenseStatus(isValid, licenseKey) {
 
   // Re-enable save button
   saveBtn.disabled = false;
-  saveBtn.textContent = 'Save License';
+  saveBtn.textContent = 'Save';
 
   if (isValid && licenseKey) {
     statusElement.textContent = 'Valid';
@@ -563,6 +561,12 @@ function updateUI(data) {
       currentLicenseDiv.style.display = 'none';
     }
   }
+}
+
+function toggleLicenseMenu() {
+  const licenseMenu = document.querySelector('.license-content');
+  licenseMenu.style.display =
+    licenseMenu.style.display === 'none' ? 'block' : 'none';
 }
 
 // Initialize when page loads
@@ -615,12 +619,9 @@ window.goBackToComponents = goBackToComponents;
 window.copyBlockCode = copyBlockCode;
 window.sendToIDEAgent = sendToIDEAgent;
 window.previewBlock = previewBlock;
-window.addCodeToCursorPosition = addCodeToCursorPosition;
 
 // Initialize UI when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   // Request initial data from extension
-  vscode.postMessage({
-    type: 'requestInitialData',
-  });
+  fetchApiData();
 });

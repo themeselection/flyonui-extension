@@ -43,7 +43,7 @@
       "activitybar": [
         {
           "id": "stagewise-sidebar",
-          "title": "Stagewise",
+          "title": "FlyonUI Extension",
           "icon": "$(rocket)"
         }
       ]
@@ -53,7 +53,7 @@
         {
           "type": "webview",
           "id": "stagewise.apiDataView",
-          "name": "Build & Launch",
+          "name": "Premium FlyonUI Blocks",
           "icon": "$(rocket)",
           "when": "true"
         }
