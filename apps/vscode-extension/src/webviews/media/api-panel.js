@@ -1,6 +1,146 @@
 // Get VS Code API
 const vscode = acquireVsCodeApi();
 
+// Fuzzy search utility function
+function fuzzyMatch(text, query) {
+  if (!text || !query) return { match: false, score: 0 };
+
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+
+  // Exact match gets highest score
+  if (lowerText.includes(lowerQuery)) {
+    return { match: true, score: 100 - lowerText.indexOf(lowerQuery) * 10 };
+  }
+
+  // Fuzzy matching algorithm
+  let textIndex = 0;
+  let queryIndex = 0;
+  const matches = [];
+  let consecutiveMatches = 0;
+  let totalScore = 0;
+
+  while (textIndex < lowerText.length && queryIndex < lowerQuery.length) {
+    if (lowerText[textIndex] === lowerQuery[queryIndex]) {
+      matches.push(textIndex);
+      consecutiveMatches++;
+      queryIndex++;
+
+      // Bonus for consecutive matches
+      totalScore += consecutiveMatches * 2;
+    } else {
+      consecutiveMatches = 0;
+    }
+    textIndex++;
+  }
+
+  // Check if all query characters were found
+  if (queryIndex === lowerQuery.length) {
+    // Bonus for matches at word boundaries
+    const wordBoundaryBonus =
+      matches.filter(
+        (index) =>
+          index === 0 ||
+          lowerText[index - 1] === ' ' ||
+          lowerText[index - 1] === '-' ||
+          lowerText[index - 1] === '_',
+      ).length * 5;
+
+    // Penalty for distance between matches
+    const spread =
+      matches.length > 1 ? matches[matches.length - 1] - matches[0] : 0;
+    const spreadPenalty = Math.floor(spread / lowerQuery.length);
+
+    totalScore += wordBoundaryBonus - spreadPenalty;
+
+    // Normalize score based on text length
+    const normalizedScore = Math.max(
+      0,
+      Math.min(100, totalScore * (lowerQuery.length / lowerText.length) * 50),
+    );
+
+    return { match: true, score: normalizedScore };
+  }
+
+  return { match: false, score: 0 };
+}
+
+function fuzzySearchItems(items, query, searchFields) {
+  if (!query.trim()) {
+    return items;
+  }
+
+  const results = [];
+
+  items.forEach((item) => {
+    let bestScore = 0;
+    let hasMatch = false;
+
+    // Search in specified fields
+    searchFields.forEach((field) => {
+      const fieldValue = getNestedProperty(item, field);
+      if (fieldValue) {
+        const result = fuzzyMatch(fieldValue, query);
+        if (result.match) {
+          hasMatch = true;
+          bestScore = Math.max(bestScore, result.score);
+        }
+      }
+    });
+
+    if (hasMatch) {
+      results.push({ item, score: bestScore });
+    }
+  });
+
+  // Sort by score (highest first)
+  results.sort((a, b) => b.score - a.score);
+
+  return results.map((result) => result.item);
+}
+
+function getNestedProperty(obj, path) {
+  return path.split('.').reduce((current, key) => {
+    return current && current[key] !== undefined ? current[key] : '';
+  }, obj);
+}
+
+function highlightMatches(text, query) {
+  if (!text || !query) return escapeHtml(text);
+
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+
+  // For exact matches, highlight the exact substring
+  if (lowerText.includes(lowerQuery)) {
+    const index = lowerText.indexOf(lowerQuery);
+    const before = text.substring(0, index);
+    const match = text.substring(index, index + query.length);
+    const after = text.substring(index + query.length);
+    return `${escapeHtml(before)}<mark class="search-highlight">${escapeHtml(match)}</mark>${escapeHtml(after)}`;
+  }
+
+  // For fuzzy matches, highlight individual matching characters
+  let result = '';
+  let textIndex = 0;
+  let queryIndex = 0;
+
+  while (textIndex < text.length) {
+    if (
+      queryIndex < query.length &&
+      lowerText[textIndex] === lowerQuery[queryIndex]
+    ) {
+      result += `<mark class="search-highlight">${escapeHtml(text[textIndex])}</mark>`;
+      queryIndex++;
+    } else {
+      result += escapeHtml(text[textIndex]);
+    }
+    textIndex++;
+  }
+
+  return result;
+}
+
 // Main functions
 function refreshData() {
   vscode.postMessage({
@@ -89,15 +229,19 @@ function renderComponentCards(components) {
   grid.appendChild(cardsContainer);
 }
 
-function createComponentCard(component, index) {
+function createComponentCard(component, index, searchQuery = '') {
   const card = document.createElement('div');
   card.className = 'component-card';
   card.setAttribute('data-component-index', index);
 
+  const displayName = searchQuery
+    ? highlightMatches(component.name, searchQuery)
+    : escapeHtml(component.name);
+
   card.innerHTML = `
     <img src="${escapeHtml(component.imgSrc || '')}" alt="${escapeHtml(component.name)}" class="component-image" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')" />
     <div class="component-header">
-      <h3 class="component-name">${escapeHtml(component.name)}</h3>
+      <h3 class="component-name">${displayName}</h3>
       <button class="icon-btn explore-btn" onclick="openComponent('${escapeHtml(component.name)}', '${escapeHtml(component.path)}')" title="Explore component blocks">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m9 18 6-6-6-6"/>
@@ -185,23 +329,21 @@ function showCopyFeedback() {
 
 function filterComponents(searchTerm) {
   const components = window.originalComponents || [];
-  const searchLower = searchTerm.toLowerCase().trim();
+  const searchQuery = searchTerm.trim();
 
-  if (!searchLower) {
-    // Show all components
+  if (!searchQuery) {
+    // Clear search query and show all components
+    window.currentComponentSearch = '';
     renderFilteredComponents(components);
     return;
   }
 
-  // Filter components based on name, description, or path
-  const filtered = components.filter((component) => {
-    return (
-      component.name.toLowerCase().includes(searchLower) ||
-      component.description?.toLowerCase().includes(searchLower) ||
-      component.path.toLowerCase().includes(searchLower)
-    );
-  });
+  // Use fuzzy search for components
+  const searchFields = ['name', 'description', 'path'];
+  const filtered = fuzzySearchItems(components, searchQuery, searchFields);
 
+  // Store current search query for highlighting
+  window.currentComponentSearch = searchQuery;
   renderFilteredComponents(filtered);
 }
 
@@ -228,32 +370,30 @@ function renderFilteredComponents(components) {
     return;
   }
 
+  const searchQuery = window.currentComponentSearch || '';
   components.forEach((component, index) => {
-    const card = createComponentCard(component, index);
+    const card = createComponentCard(component, index, searchQuery);
     cardsContainer.appendChild(card);
   });
 }
 
 function filterBlocks(searchTerm) {
   const blocks = window.originalBlocks || [];
-  const searchLower = searchTerm.toLowerCase().trim();
+  const searchQuery = searchTerm.trim();
 
-  if (!searchLower) {
-    // Show all blocks
+  if (!searchQuery) {
+    // Clear search query and show all blocks
+    window.currentBlockSearch = '';
     renderFilteredBlocks(blocks);
     return;
   }
 
-  // Filter blocks based on name, title, or path
-  const filtered = blocks.filter((block) => {
-    const blockName = block.name || block.title || '';
-    return (
-      blockName.toLowerCase().includes(searchLower) ||
-      block.path?.toLowerCase().includes(searchLower) ||
-      block.description?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Use fuzzy search for blocks - search in name, title, path, and description
+  const searchFields = ['name', 'title', 'path', 'description'];
+  const filtered = fuzzySearchItems(blocks, searchQuery, searchFields);
 
+  // Store current search query for highlighting
+  window.currentBlockSearch = searchQuery;
   renderFilteredBlocks(filtered);
 }
 
@@ -280,8 +420,9 @@ function renderFilteredBlocks(blocks) {
     return;
   }
 
+  const searchQuery = window.currentBlockSearch || '';
   blocks.forEach((block, index) => {
-    const blockCard = createBlockCard(block, index);
+    const blockCard = createBlockCard(block, index, searchQuery);
     blocksContainer.appendChild(blockCard);
   });
 }
@@ -398,18 +539,21 @@ function renderComponentDetails(blocks, componentName, componentPath, error) {
   grid.appendChild(blocksContainer);
 }
 
-function createBlockCard(block, index) {
+function createBlockCard(block, index, searchQuery = '') {
   const card = document.createElement('div');
   card.className = 'block-card';
 
   // Handle different possible block structures
   const blockName = block.name || block.title || `Block ${index + 1}`;
+  const displayName = searchQuery
+    ? highlightMatches(blockName, searchQuery)
+    : escapeHtml(blockName);
   const imgUrl = `https://cdn.flyonui.com/fy-assets/extension${block.path}.png`;
 
   card.innerHTML = `
     ${imgUrl ? `<img src="${imgUrl}" alt="${escapeHtml(blockName)}" class="component-image" />` : ''}
     <div class="block-header">
-      <h3 class="block-name">${escapeHtml(blockName)}</h3>
+      <h3 class="block-name">${displayName}</h3>
       <div class="block-actions">
         <button class="icon-btn preview-btn" onclick="previewBlock('${escapeHtml(block.path)}', '${escapeHtml(blockName)}')" title="Preview block">
           <svg xmlns="http://www.w3.org/2000/svg" 

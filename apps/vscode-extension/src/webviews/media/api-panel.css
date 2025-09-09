@@ -748,4 +748,19 @@ body {
     filter: brightness(1.05);
 }
 
+/* Search highlighting styles */
+.search-highlight {
+    background-color: var(--vscode-editor-findMatchHighlightBackground);
+    color: var(--vscode-editor-findMatchHighlightForeground);
+    border-radius: 2px;
+    padding: 0 1px;
+    font-weight: bold;
+}
+
+/* Responsive search input for better UX */
+.search-input:focus {
+    outline: 2px solid var(--vscode-focusBorder);
+    outline-offset: -2px;
+}
+
 
