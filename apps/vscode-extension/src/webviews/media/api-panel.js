@@ -432,15 +432,6 @@ function showComponentDetails(blocks, componentName, componentPath, error) {
   const errorState = document.getElementById('error-state');
   const dataContainer = document.getElementById('api-data-container');
 
-  console.log('showComponentDetails called with:', {
-    blocks,
-    componentName,
-    componentPath,
-    error,
-    blocksIsArray: Array.isArray(blocks),
-    blocksLength: blocks ? blocks.length : 'null',
-  });
-
   // Hide loading state
   showLoadingState(false);
 

@@ -130,8 +130,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
 
       const apiData: any = await response.json();
 
-      console.log(`Block data for ${componentName} from ${dataPath}:`, apiData);
-
       // Handle case where API returns a JSON string instead of an object
       let parsedData: any;
       if (typeof apiData === 'string') {
@@ -196,8 +194,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         'x-license-key': licenseKey,
       };
 
-      console.log('licenseKey:', licenseKey);
-
       const response = await fetch(url, { method: 'GET', headers });
 
       if (!response.ok) {
@@ -214,15 +210,11 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
         parsedData = apiData;
       }
 
-      console.log(`Raw block data from 210 ${dataPath}:`, parsedData.snippets);
-
       // Extract the code from the response
       // First, try to get blocks data similar to the existing method
       let blocksData = null;
       if (Array.isArray(parsedData.snippets)) blocksData = parsedData.snippets;
       else blocksData = [parsedData];
-
-      console.log(`Extracted blocks data from 222 ${dataPath}:`, blocksData);
 
       // Format the code in each snippet
       blocksData.forEach((block: any) => {
@@ -367,8 +359,6 @@ Follow the below instructions to integrate this component into the codebase:
       }
 
       const resultData: any[] = [];
-
-      console.log('Raw FlyonUI data:', parsedData);
 
       parsedData.components.forEach((component: any) => {
         if ('category' in component) {
