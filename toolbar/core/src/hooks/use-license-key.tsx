@@ -3,12 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 // License key storage key
 const LICENSE_KEY_STORAGE_KEY = 'stagewise_pro_license_key';
 
-// License key validation patterns
-const LICENSE_KEY_PATTERNS = [
-  /^SW-PRO-[A-Z0-9]{8}-[A-Z0-9]{8}-[A-Z0-9]{8}$/, // SW-PRO-XXXXXXXX-XXXXXXXX-XXXXXXXX
-  /^FLYUI-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/, // FLYUI-XXXX-XXXX-XXXX-XXXX
-];
-
 interface LicenseKeyState {
   licenseKey: string | null;
   isProUser: boolean;
@@ -69,18 +63,31 @@ export function useLicenseKey() {
         return false;
       }
 
-      // const trimmedKey = key.trim().toUpperCase();
+      const trimmedLicenseKey = key.trim();
+      const url = 'https://flyonui.com/staging/api/mcp/validate-license-key';
       // Will try to implement backend validation with the help of API.
 
-      // TODO: In a real implementation, you would validate with your backend service
-      // For now, we'll do client-side validation only
+      // TODO: Update this staging URL to production when ready
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-license-key': trimmedLicenseKey,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          'License key validation request failed:',
+          response.status,
+        );
+        return false;
+      }
+      return true;
 
       // For demo purposes, consider any properly formatted key as valid
       // In production, this should validate against your license server
-      return true;
     },
     [],
   );

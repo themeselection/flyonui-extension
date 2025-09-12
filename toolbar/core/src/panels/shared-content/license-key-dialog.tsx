@@ -55,7 +55,7 @@ export function LicenseKeyDialog({
         setInputKey('');
         onClose();
       } else {
-        setValidationError('Invalid license key format');
+        setValidationError('Invalid license key. Please check and try again.');
       }
     } catch (error) {
       setValidationError(
@@ -74,7 +74,7 @@ export function LicenseKeyDialog({
     onClose();
   }, [onClose]);
 
-  const handleKeyPress = useCallback(
+  const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
         handleSave();
@@ -124,7 +124,7 @@ export function LicenseKeyDialog({
                 type="text"
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder="Enter your license key..."
                 className="w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
                 disabled={isValidating}
