@@ -473,10 +473,30 @@ Follow the below instructions to integrate this component into the codebase:
 
   private async _validateLicenseKey(licenseKey: string): Promise<boolean> {
     // For now, we'll implement a simple validation
-    // In a real implementation, you would call the FlyonUI API to validate the license
+    const trimmedKey = licenseKey.trim();
 
-    // Allow blank license keys
-    return true;
+    try {
+      const response = await fetch(
+        'https://flyonui.com/staging/api/mcp/validate-license-key',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-license-key': trimmedKey,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        console.error('Invalid license key:', response.status);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error validating license key:', error);
+      return false;
+    }
   }
 
   private _getCurrentLicenseKey(): string {

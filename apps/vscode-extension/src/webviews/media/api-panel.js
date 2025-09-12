@@ -148,7 +148,9 @@ function refreshData() {
   });
 }
 
-function saveLicenseKey() {
+function saveLicenseKey(event) {
+  event.preventDefault(); // Prevent form submission
+
   const input = document.getElementById('license-key-input');
   const licenseKey = input.value.trim();
 

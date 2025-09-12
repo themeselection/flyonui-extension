@@ -33,17 +33,18 @@
                 Current License: <span id="current-license-text"></span>
             </div>
             
-            <div class="license-input-group">
+            <form class="license-input-group" onsubmit="saveLicenseKey(event)">
                 <input
                     type="text"
                     class="license-input"
+                    required
                     id="license-key-input"
                     placeholder="Enter your FlyonUI Pro license key"
                 />
-                <button class="license-btn" onclick="saveLicenseKey()" id="save-license-btn">
+                <button class="license-btn" type="submit" id="save-license-btn">
                     Save
                 </button>
-            </div>
+            </form>
             
             <div class="license-description">
                 Don't have FlyonUI Pro?
