@@ -1,27 +1,27 @@
-import { configResolver } from './config';
-import { configFileExists } from './config/config-file';
-import { telemetryManager, analyticsEvents } from './utils/telemetry';
-import { identifierManager } from './utils/identifier';
-import { getServer } from './server';
-import { shutdownAgent } from './server/agent-loader';
-import { log } from './utils/logger';
-import {
-  silent,
-  commandExecuted,
-  authSubcommand,
-  telemetrySubcommand,
-  telemetryLevel,
-  wrappedCommand,
-  hasWrappedCommand,
-} from './config/argparse';
-import { printBanner } from './utils/banner';
+import open from 'open';
 import { oauthManager } from './auth/oauth';
+import { configResolver } from './config';
+import {
+  authSubcommand,
+  commandExecuted,
+  hasWrappedCommand,
+  silent,
+  telemetryLevel,
+  telemetrySubcommand,
+  wrappedCommand,
+} from './config/argparse';
+import { configFileExists } from './config/config-file';
 import {
   discoverDependencies,
   getDependencyList,
 } from './dependency-parser/index.js';
-import open from 'open';
+import { getServer } from './server';
+import { shutdownAgent } from './server/agent-loader';
+import { printBanner } from './utils/banner';
 import { commandExecutor } from './utils/command-executor';
+import { identifierManager } from './utils/identifier';
+import { log } from './utils/logger';
+import { analyticsEvents, telemetryManager } from './utils/telemetry';
 
 // Suppress util._extend deprecation warnings
 // Set NODE_NO_DEPRECATION to suppress all deprecation warnings, then restore other warnings
@@ -234,7 +234,7 @@ async function main() {
         typeof address === 'object' && address ? address.port : config.port;
       const serverUrl = `http://localhost:${port}`;
 
-      log.info(`✓ Stagewise is running on ${serverUrl}`);
+      log.info(`✓ FlyonUI Extension is running on ${serverUrl}`);
       if (config.appPort) {
         log.info(`✓ Proxying app from port ${config.appPort}`);
       }

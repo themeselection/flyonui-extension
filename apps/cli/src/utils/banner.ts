@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -17,14 +17,15 @@ export function getVersion(): string {
 }
 
 function displayAsciiLogo(): void {
-  // Define the colors for the vertical gradient (from blue to purple).
-  // These hex values are chosen to create a smooth transition inspired by the logo.
+  // Define the colors for the FlyonUI primary color in gradient variations.
+
+  // Converting to hex and creating a subtle gradient
   const gradientColors = [
-    chalk.hex('#4692CF'), // Blue
-    chalk.hex('#537CD5'),
-    chalk.hex('#6066DA'),
-    chalk.hex('#6A4FE0'),
-    chalk.hex('#6D28D9'), // Purple
+    chalk.hex('#8A73DB'), // Lighter shade
+    chalk.hex('#7E66D6'),
+    chalk.hex('#7359D1'), // Primary color
+    chalk.hex('#6A4FCC'),
+    chalk.hex('#614AC7'), // Darker shade
   ];
 
   // Define the color for the inner part of the logo (the "kernel").
@@ -32,19 +33,24 @@ function displayAsciiLogo(): void {
 
   // The ASCII art for the logo.
   const logo = [
-    ' ,adPPYba,  ',
-    'a8""###"8a  ',
-    '8b,#####bb8 ',
-    '"8a,###\\a8" ',
-    ' `"YbbdP"   ',
+    ' @@@@@@@@@@@@@@@@@  ',
+    '@@@@@@@@@@@@@@@@@@@@',
+    '@@@@@@@@    @@@@@@@@',
+    '@@@@@@@      @@@@@@@',
+    '@@@@@@  @@@@  @@@@@@',
+    '@@@@   @@@@@@   @@@@',
+    '@@@@@@@@@   @@@@@@@@',
+    '@@@@@@@@@@@@@@@@@@@@',
+    ' @@@@@@@@@@@@@@@@@@ ',
   ];
 
   const textArt = [
-    '     |                                   ',
-    ',---.|--- ,---.,---.,---.. . ..,---.,---.',
-    "`---.|    ,---||   ||---'| | ||`---.|---'",
-    "`---'`---'`---^'---|'---'`-`-'``---'`---' ",
-    "               `---'                     ",
+    '    ________                        _ ',
+    '   / ____/ /_  _______ _____ __  __(_)',
+    '  / /_  / / / / / __  / __  / / / / / ',
+    ' / __/ / / /_/ / /_/ / / / / /_/ / /  ',
+    '/_/   /_/___, /_____/_/ /_/___,_/_/   ',
+    '        /____/                        ',
   ];
 
   console.log('');
@@ -106,7 +112,10 @@ export function printBanner(silent: boolean): void {
   // createAsciiCircle(10, 'W', chalk.blue);
   displayAsciiLogo();
   console.log();
-  console.log(chalk.blue.bold('     STAGEWISE') + chalk.gray(` v${version}`));
+  console.log(
+    chalk.hex('#7359D1').bold('     FLYONUI EXTENSION') +
+      chalk.gray(` v${version}`),
+  );
   console.log(
     chalk.gray('     The frontend coding agent for production codebases'),
   );
@@ -122,7 +131,8 @@ export function printCompactBanner(silent: boolean): void {
   const version = getVersion();
 
   console.log();
-  console.log(chalk.blue.bold('  STAGEWISE') + chalk.gray(` v${version}`));
-  console.log(chalk.gray('  Development Proxy & AI Coding Assistant'));
+  console.log(
+    chalk.hex('#7359D1').bold('  FLYONUI') + chalk.gray(` v${version}`),
+  );
   console.log();
 }
