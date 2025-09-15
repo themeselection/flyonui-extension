@@ -1,9 +1,9 @@
 {
-  "name": "stagewise",
+  "name": "flyonui-extension-cli",
   "module": "src/index.ts",
   "type": "module",
   "version": "0.2.0",
-  "description": "Stagewise CLI",
+  "description": "FlyOnUI Extension CLI",
   "author": "stagewise GmbH",
   "license": "AGPL-3.0-only",
   "repository": {
@@ -12,7 +12,7 @@
   },
   "private": false,
   "bin": {
-    "stagewise": "dist/index.cjs"
+    "flyonui-extension-cli": "dist/index.cjs"
   },
   "files": [
     "dist"
