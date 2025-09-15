@@ -15,7 +15,6 @@ import { isRoocodeInstalled } from './is-roocode-installed';
 
 export async function dispatchAgentCall(request: PromptRequest) {
   const ide = getCurrentIDE();
-  console.log('Dispatching agent call for IDE:', ide);
   switch (ide) {
     case 'TRAE':
       return await callTraeAgent(request);
@@ -29,7 +28,6 @@ export async function dispatchAgentCall(request: PromptRequest) {
       if (isKilocodeInstalled()) return await callKilocodeAgent(request);
       if (isCopilotChatInstalled()) return await callCopilotAgent(request);
       else {
-        console.log('Copilot Chat not installed');
         vscode.window.showErrorMessage(
           'Currently, only Copilot Chat, Cline, Roo Code, and Kilo Code are supported for VSCode. Please install one of them from the marketplace to use stagewise with VSCode.',
         );
