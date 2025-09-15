@@ -52,9 +52,6 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
           break;
         case 'openComponent':
           await this._fetchFlyonuiBlockData(data.path, data.name);
-          vscode.window.showInformationMessage(
-            `Opening component: ${data.name} (${data.path})`,
-          );
           break;
         case 'copyBlockCode':
           await this._copyBlockCode(data.path);
