@@ -9,7 +9,7 @@
         "run",
         "build",
         "--filter",
-        "stagewise-vscode-extension",
+        "flyonui-vscode-extension",
         "--force"
       ],
       "group": "build",

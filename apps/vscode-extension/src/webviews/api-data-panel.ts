@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { dispatchAgentCall } from '../utils/dispatch-agent-call';
 
 export class ApiDataProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'stagewise.apiDataView';
+  public static readonly viewType = 'flyonui.apiDataView';
 
   private _view?: vscode.WebviewView;
 
@@ -505,12 +505,13 @@ Follow the below instructions to integrate this component into the codebase:
     // Get path to media directory
     const mediaPath = vscode.Uri.joinPath(
       this._extensionUri,
+      'out',
       'src',
       'webviews',
       'media',
     );
 
-    // Get URIs for CSS and JS files
+    // Get URIs for CSS and JS files using the found media path
     const styleUri = webview.asWebviewUri(
       vscode.Uri.joinPath(mediaPath, 'api-panel.css'),
     );

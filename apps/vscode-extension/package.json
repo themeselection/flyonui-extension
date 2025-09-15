@@ -1,10 +1,10 @@
 {
-  "name": "stagewise-vscode-extension",
-  "displayName": "stagewise",
+  "name": "flyonui-vscode-extension",
+  "displayName": "FlyonUI Extension",
   "private": true,
-  "description": "Visual vibe coding. Right in your codebase.",
+  "description": "FlyonUI components integration for VS Code. Fork of Stagewise for FlyonUI premium components.",
   "version": "0.10.0",
-  "publisher": "stagewise",
+  "publisher": "themeselection",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -24,35 +24,35 @@
   "contributes": {
     "commands": [
       {
-        "command": "stagewise.setAgent",
-        "title": "Set the preferred agent you want to use with stagewise",
-        "category": "stagewise"
+        "command": "flyonui.setAgent",
+        "title": "Set the preferred agent you want to use with FlyonUI",
+        "category": "FlyonUI"
       },
       {
-        "command": "extension.openDataPanel",
-        "title": "Open API Data Panel",
-        "category": "stagewise"
+        "command": "flyonui.openDataPanel",
+        "title": "Open FlyonUI Blocks Panel",
+        "category": "FlyonUI"
       },
       {
-        "command": "stagewise.focusApiDataView",
-        "title": "Focus API Data View",
-        "category": "stagewise"
+        "command": "flyonui.focusApiDataView",
+        "title": "Focus FlyonUI Blocks Panel",
+        "category": "FlyonUI"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "stagewise-sidebar",
+          "id": "flyonui-sidebar",
           "title": "FlyonUI Extension",
           "icon": "$(rocket)"
         }
       ]
     },
     "views": {
-      "stagewise-sidebar": [
+      "flyonui-sidebar": [
         {
           "type": "webview",
-          "id": "stagewise.apiDataView",
+          "id": "flyonui.apiDataView",
           "name": "Premium FlyonUI Blocks",
           "icon": "$(rocket)",
           "when": "true"
@@ -60,8 +60,8 @@
       ]
     },
     "icons": {
-      "stagewise-icon": {
-        "description": "Stagewise icon",
+      "flyonui-icon": {
+        "description": "FlyonUI icon",
         "default": {
           "fontPath": "./stagewise-icons.woff",
           "fontCharacter": "\\E800"
@@ -70,10 +70,10 @@
     },
     "configuration": [
       {
-        "title": "stagewise",
+        "title": "FlyonUI",
         "type": "object",
         "properties": {
-          "stagewise.telemetry.enabled": {
+          "flyonui.telemetry.enabled": {
             "type": "boolean",
             "default": true,
             "description": "Enable anonymous usage data collection to help improve the product. No personal data is collected.",
@@ -81,7 +81,7 @@
               "telemetry",
               "usesOnlineServices"
             ],
-            "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/stagewise-io/stagewise/blob/main/apps/vscode-extension/TELEMETRY.md)."
+            "markdownDescription": "Enable anonymous usage data collection to help improve the product. No personal data is collected.\n\nRead more about our [telemetry data collection](https://github.com/themeselection/flyonui-extension/blob/main/apps/vscode-extension/TELEMETRY.md)."
           }
         }
       },
@@ -99,21 +99,22 @@
       }
     ]
   },
-  "homepage": "https://stagewise.io",
+  "homepage": "https://flyonui.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stagewise-io/stagewise.git"
+    "url": "https://github.com/themeselection/flyonui-extension.git"
   },
   "bugs": {
-    "url": "https://github.com/stagewise-io/stagewise/issues"
+    "url": "https://github.com/themeselection/flyonui-extension/issues"
   },
   "keywords": [
-    "stagewise",
-    "cursor",
+    "flyonui",
+    "ui",
+    "components",
+    "tailwindcss",
     "extension",
-    "ai",
-    "code",
-    "agent"
+    "vscode",
+    "stagewise-fork"
   ],
   "scripts": {
     "vscode:prepublish": "pnpm run build",

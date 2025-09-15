@@ -21,10 +21,10 @@ let ideAgentInitialized = false;
 
 // Diagnostic collection specifically for our fake prompt
 const fakeDiagCollection =
-  vscode.languages.createDiagnosticCollection('stagewise');
+  vscode.languages.createDiagnosticCollection('flyonui');
 
-// Create output channel for stagewise
-const outputChannel = vscode.window.createOutputChannel('stagewise');
+// Create output channel for FlyonUI
+const outputChannel = vscode.window.createOutputChannel('FlyonUI');
 
 // Handler for the setupToolbar command
 async function removeOldToolbarHandler() {
@@ -98,8 +98,8 @@ export async function activate(context: vscode.ExtensionContext) {
     // Add configuration change listener to track telemetry setting changes
     const configChangeListener = vscode.workspace.onDidChangeConfiguration(
       async (e) => {
-        if (e.affectsConfiguration('stagewise.telemetry.enabled')) {
-          const config = vscode.workspace.getConfiguration('stagewise');
+        if (e.affectsConfiguration('flyonui.telemetry.enabled')) {
+          const config = vscode.workspace.getConfiguration('flyonui');
           const telemetryEnabled = config.get<boolean>(
             'telemetry.enabled',
             true,
@@ -150,7 +150,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(workspaceFolderListener);
 
     const setAgentCommand = vscode.commands.registerCommand(
-      'stagewise.setAgent',
+      'flyonui.setAgent',
       async () => {
         await agentSelectorService.showAgentPicker();
       },
@@ -168,19 +168,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Command to focus the API Data view
     const focusApiDataViewCommand = vscode.commands.registerCommand(
-      'stagewise.focusApiDataView',
+      'flyonui.focusApiDataView',
       async () => {
-        await vscode.commands.executeCommand('stagewise.apiDataView.focus');
+        await vscode.commands.executeCommand('flyonui.apiDataView.focus');
       },
     );
     context.subscriptions.push(focusApiDataViewCommand);
 
     // Keep the old command for backward compatibility (optional)
     const disposablePanel = vscode.commands.registerCommand(
-      'extension.openDataPanel',
+      'flyonui.openDataPanel',
       () => {
         vscode.window.showInformationMessage(
-          'API Data Panel is now available in the sidebar. Look for the Stagewise icon in the Activity Bar.',
+          'API Data Panel is now available in the sidebar. Look for the FlyonUI icon in the Activity Bar.',
         );
       },
     );
