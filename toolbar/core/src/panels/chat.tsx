@@ -494,11 +494,7 @@ export function ChatPanel() {
                   'text-foreground/40 text-sm',
                   chatState.chatInput.length !== 0 && 'opacity-0',
                 )}
-                texts={[
-                  'Try: Add a new button into the top right corner',
-                  'Try: Convert these cards into accordions',
-                  'Try: Add a gradient to the background',
-                ]}
+                texts={['Write something or type "@" for more options...']}
               />
             </div>
 
