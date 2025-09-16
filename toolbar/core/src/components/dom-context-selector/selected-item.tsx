@@ -1,7 +1,7 @@
-import { useWindowSize } from '@/hooks/use-window-size';
 import { useCyclicUpdate } from '@/hooks/use-cyclic-update';
-import { useCallback, useRef, type HTMLAttributes } from 'react';
+import { useWindowSize } from '@/hooks/use-window-size';
 import { cn } from '@/utils';
+import { useCallback, useRef, type HTMLAttributes } from 'react';
 
 export interface SelectedItemProps extends HTMLAttributes<HTMLButtonElement> {
   refElement: HTMLElement;

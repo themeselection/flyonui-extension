@@ -138,9 +138,9 @@ export const ChatStateProvider = ({ children }: ChatStateProviderProps) => {
 
   const stopPromptCreation = useCallback(() => {
     setIsPromptCreationMode(false);
-    setDomContextElements([]);
-    setSelectedDocs([]);
-    setSelectedBlocks([]);
+    // setDomContextElements([]);
+    // setSelectedDocs([]);
+    // setSelectedBlocks([]);
     plugins.forEach((plugin) => {
       plugin.onPromptingAbort?.();
     });

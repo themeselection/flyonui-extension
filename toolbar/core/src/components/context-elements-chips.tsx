@@ -103,7 +103,7 @@ function ContextElementChip({
       type="button"
       tabIndex={-1}
       className={cn(
-        'flex min-w-fit shrink-0 items-center gap-1 rounded-lg border border-border/20 bg-white/10 px-2 py-1 text-xs transition-all hover:border-border/40 hover:bg-white/20',
+        'flex min-w-fit shrink-0 items-center gap-1 rounded-md border border-border bg-white/10 px-2 py-1 text-xs transition-all hover:border-border/40 hover:bg-white/20',
       )}
       onMouseEnter={() => onHover(element)}
       onMouseLeave={() => onUnhover()}
