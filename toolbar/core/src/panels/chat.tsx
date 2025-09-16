@@ -281,7 +281,11 @@ export function ChatPanel() {
   }, [chatMessaging.agentMessage?.contentItems]);
 
   const handleSubmit = useCallback(() => {
-    if (isDocsFocused && docsListRef.current) {
+    if (docsListRef.current && (isDocsActivated || isDocsFocused)) {
+      if (isDocsActivated || !isDocsFocused) {
+        docsListRef.current.focusOnDocs();
+      }
+
       const success = docsListRef.current.selectActiveDoc();
       if (success) {
         setTimeout(() => handleFocusReturn(), 100);
