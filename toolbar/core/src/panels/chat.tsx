@@ -282,7 +282,7 @@ export function ChatPanel() {
 
   const handleSubmit = useCallback(() => {
     if (docsListRef.current && (isDocsActivated || isDocsFocused)) {
-      if (isDocsActivated || !isDocsFocused) {
+      if (isDocsActivated && !isDocsFocused) {
         docsListRef.current.focusOnDocs();
       }
 
