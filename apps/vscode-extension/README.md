@@ -1,44 +1,46 @@
-# <img src="https://github.com/stagewise-io/assets/blob/main/media/logo.png?raw=true" alt="stagewise logo" width="48" height="48" style="border-radius: 50%; vertical-align: middle; margin-right: 8px;" /> stagewise
+# <img src="https://cdn.flyonui.com/fy-assets/logo/logo.png" alt="stagewise logo" width="48" height="48" style="vertical-align: middle; margin-right: 8px;" /> FlyonUI IDE Extension
 
-***The frontend coding agent for production codebases***
+***Edit Your UI With a Prompt. No Context Switching.***
 
-# IDE Bridge extension
+# FlyonUI IDE extension
 
-[![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/stagewise.stagewise-vscode-extension?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=stagewise.stagewise-vscode-extension) ![NPM License](https://img.shields.io/npm/l/stagewise) [![GitHub Repo stars](https://img.shields.io/github/stars/stagewise-io/stagewise)](https://github.com/stagewise-io/stagewise)
+ [![GitHub Repo stars](https://img.shields.io/github/stars/themeselection/flyonui-extension )](https://github.com/themeselection/flyonui-extension)
+ [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/flyonui)](https://x.com/flyonui)
 
-[![Join us on Discord](https://img.shields.io/discord/1229378372141056010?label=Discord&logo=discord&logoColor=white)](https://discord.gg/gkdGsDYaKA) [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/stagewise_io)](https://x.com/stagewise_io)
-
-![stagewise demo](https://github.com/stagewise-io/assets/blob/main/media/demo.gif?raw=true)
-
-> In most cases, you most likely don't need this extension and should instead just use our [new stagewise CLI](https://stagewise.io/docs).
->
-> If you want to find out, why you would need this extension, read [What is the IDE Bridge extension?](#what-is-the-ide-bridge-extension).
+> If you want to find out, why you would need this extension, read [What is the FlyonUI IDE extension?](#what-is-the-flyonui-ide-extension).
 
 ## About the project
 
-Welcome to **stagewise** —  The frontend coding agent for production codebases
+This extension is a fork of [Stagewise](https://github.com/stagewise-io/stagewise).
 
-- 💬 Tell the agent what you want to change
+Welcome to **FlyonUI IDE Extension** — the tool for developers who want to make UI changes without context switching.
+
+- 💬 Tell what you want to change
 - 🧠 Click on element(s) to let the agent know where a change should happen
-- 💡 Let stagewise do the magic!
+- 💡 Let FlyonUI IDE Extension do the magic!
 
-> Perfect for devs tired of pasting element information and folder paths into prompts. stagewise uses real-time, browser-powered context.
+You can also use the FlyonUI Blocks from the toolbar and from the extension window to insert them directly into your project.
+
+> Perfect for devs tired of pasting element information and folder paths into prompts. FlyonUI IDE Extension uses real-time, browser-powered context.
 
 ## Features
 
 - ⚡ Works out of the box
-- 🧩 Customize and extend functionality with Plugins
 - 📖 Open source
 - ⛓️ Compatible with all kinds of frameworks
-- 🧠 Use our dedicated frontend agent - or any other compatible agent through our open agent interface!
+- 🧠 Compatible with all IDEs and AI Agents
+- 🚀 Access to all the FlyonUI Blocks from the FlyonUI Toolbar and IDE Extension
+- 📔 Add documentation of your framework as a context from toolbar.
 
-## What is the IDE Bridge extension?
+## What is the FlyonUI IDE extension?
 
-This extension connects stagewise to the agents that are included in many popular IDE or extensions.
+This extension connects the FlyonUI toolbar to agents included in many popular IDEs and extensions.
 
-When starting the stagewise CLI in "Bridge mode", the toolbar will search for other agents running locally.
+When you start the FlyonUI CLI, the toolbar will search for other agents running locally.
 
-Installing this extension will make the agent inside the IDE available in the stagewise toolbar.
+This way, you can use the FlyonUI toolbar to select elements and provide context to your AI agent without switching between your IDE and browser.
+
+Apart from this, you can also use the FlyonUI Blocks from the toolbar to use them directly in your project.
 
 ### 🤖 Supported agents / IDEs
 
@@ -52,15 +54,27 @@ Installing this extension will make the agent inside the IDE available in the st
 | Kilo Code      | ✅             |
 | Trae           | ✅             |
 
+## Credits 🤘
+
+We are grateful for the contributions of the open-source community, particularly:
+
+-- [Stagewise](https://stagewise.io/)
+
 ## 📜 License
 
-stagewise is developed by tiq UG (haftungsbeschränkt) and offered under the AGPLv3 license.
+This extension is a fork of [Stagewise](https://stagewise.io). FlyonUI IDE Extension is developed by [themeselection](https://www.themeselection.com) and is offered under the AGPLv3 license.
 
 For more information on the license model, visit the [FAQ about the GNU Licenses](https://www.gnu.org/licenses/gpl-faq.html).
 
-For use cases that fall outside the scope permitted by the AGPLv3 license, feel free to [📬 Contact Us](#contact-us-section).
-
 ## 💬 Community & Support
 
-- 👾 [Join our Discord](https://discord.gg/gkdGsDYaKA)
-- 📖 Open an [issue on GitHub](https://github.com/stagewise-io/stagewise/issues) for dev support.
+- 👾 [Join our Discord](https://discord.com/invite/kBHkY7DekX)
+- 📖 Open an [issue on GitHub](https://github.com/themeselection/flyonui-extension/issues) for dev support.
+- 🐦 [Follow us on Twitter](https://x.com/flyonui)
+
+## Useful Links 🎁
+
+- [Vue CheatSheet](https://vue-cheatsheet.themeselection.com/)
+- [Freebies](https://themeselection.com/item/category/freebies/)
+- [Download Free Admin Templates](https://themeselection.com/item/category/free-admin-templates/)
+- [Bootstrap 5 CheatSheet](https://bootstrap-cheatsheet.themeselection.com/)
