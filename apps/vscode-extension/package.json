@@ -1,9 +1,9 @@
 {
   "name": "flyonui-vscode-extension",
-  "displayName": "FlyonUI Extension",
+  "displayName": "FlyonUI IDE Extension",
   "private": true,
-  "description": "FlyonUI components integration for VS Code. Fork of Stagewise for FlyonUI premium components.",
-  "version": "0.10.0",
+  "description": "Edit Your UI With a Prompt.",
+  "version": "1.0.0",
   "publisher": "themeselection",
   "icon": "icon.png",
   "engines": {

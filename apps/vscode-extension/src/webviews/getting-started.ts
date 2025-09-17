@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
+import * as fs from 'fs';
+import { AnalyticsService, EventName } from 'src/services/analytics-service';
 import type { StorageService } from 'src/services/storage-service';
-import { AnalyticsService } from 'src/services/analytics-service';
-import { EventName } from 'src/services/analytics-service';
+import * as vscode from 'vscode';
 
 export function createGettingStartedPanel(
   context: vscode.ExtensionContext,
@@ -30,9 +30,12 @@ export function createGettingStartedPanel(
             cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
           });
           terminal.show();
-          terminal.sendText('npx stagewise', false);
+          terminal.sendText('npx flyonui-extension-cli', false);
           break;
         }
+        case 'openApiPanel':
+          vscode.commands.executeCommand('flyonui.focusApiDataView');
+          break;
         case 'openDiscord':
           vscode.env.openExternal(vscode.Uri.parse(message.url));
           break;
@@ -55,68 +58,87 @@ function getWebviewContent(
   webview: vscode.Webview,
   context: vscode.ExtensionContext,
 ): string {
-  const stagewiseUrl =
-    context.extensionMode === vscode.ExtensionMode.Development
-      ? 'http://localhost:3000/vscode-extension/welcome'
-      : 'https://stagewise.io/vscode-extension/welcome';
-
   const cspDomain =
     context.extensionMode === vscode.ExtensionMode.Development
       ? 'http://localhost:3000'
-      : 'https://stagewise.io';
+      : 'https://flyonui.com';
 
+  const proUrl = 'https://flyonui.com/pro';
+
+  // Get path to media directory
+  const mediaPath = vscode.Uri.joinPath(
+    context.extensionUri,
+    'out',
+    'src',
+    'webviews',
+    'media',
+  );
+
+  // Get URIs for CSS and JS files using the found media path
+  const styleUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(mediaPath, 'getting-started.css'),
+  );
+  const scriptUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(mediaPath, 'getting-started.js'),
+  );
+
+  // Get URI for the FlyonUI logo icon
+  const iconUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, 'icon.png'),
+  );
+
+  // Read HTML template
+  const htmlPath = vscode.Uri.joinPath(mediaPath, 'getting-started.html');
+  let htmlContent: string;
+
+  try {
+    const htmlBytes = fs.readFileSync(htmlPath.fsPath);
+    htmlContent = htmlBytes.toString();
+  } catch (error) {
+    console.error('Error reading HTML template:', error);
+    return getErrorHtml('Failed to load HTML template');
+  }
+
+  // Replace placeholders with actual URIs and values
+  htmlContent = htmlContent
+    .replace('{{styleUri}}', styleUri.toString())
+    .replace('{{iconUri}}', iconUri.toString())
+    .replace(/{{proUrl}}/g, proUrl);
+
+  // Inject proUrl as a global variable before the main script
+  const proUrlScript = `<script>window.proUrl = '${proUrl}';</script>`;
+  htmlContent = htmlContent.replace(
+    '<script src="{{scriptUri}}"></script>',
+    `${proUrlScript}\n  <script src="${scriptUri.toString()}"></script>`,
+  );
+
+  // Add CSP meta tag
+  const cspMetaTag = `<meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} ${cspDomain}; style-src ${webview.cspSource} 'unsafe-inline' ${cspDomain}; script-src ${webview.cspSource} 'unsafe-inline' ${cspDomain};">`;
+  htmlContent = htmlContent.replace('<title>', `${cspMetaTag}\n    <title>`);
+
+  return htmlContent;
+}
+
+function getErrorHtml(errorMessage: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} ${cspDomain}; style-src ${webview.cspSource} 'unsafe-inline' ${cspDomain}; script-src ${webview.cspSource} 'unsafe-inline' ${cspDomain};">
-    <title>Getting Started with stagewise</title>
+    <title>Error</title>
     <style>
-        html, body {
-            padding: 0;
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            overflow: hidden;
-            box-sizing: border-box;
-        }
-        #maincontent_iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        body {
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-errorForeground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<iframe src="${stagewiseUrl}" id="maincontent_iframe"></iframe>
-<script>
-    // Get the VS Code API
-    const vscode = acquireVsCodeApi();
-    const iframe = document.getElementById('maincontent_iframe');
-
-    // Single event listener to handle messages from both VS Code and iframe
-    window.addEventListener('message', event => {
-        const message = event.data;
-        console.log('Received message:', message);
-
-        // Handle messages from VS Code
-        if (event.source === window) {
-            iframe.contentWindow.postMessage(message, '*');
-        }
-        // Handle messages from iframe
-        else {
-            vscode.postMessage(message);
-        }
-    });
-</script>
+    <h2>Error Loading Panel</h2>
+    <p>${errorMessage}</p>
 </body>
 </html>`;
 }
