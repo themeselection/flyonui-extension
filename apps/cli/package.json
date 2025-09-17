@@ -2,7 +2,7 @@
   "name": "flyonui-extension-cli",
   "module": "src/index.ts",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "FlyOnUI Extension CLI",
   "author": "stagewise GmbH",
   "license": "AGPL-3.0-only",
