@@ -1,19 +1,19 @@
 import express, { type Request, type Response } from 'express';
-import { createServer } from 'node:http';
-import { configResolver } from '../config/index.js';
-import { proxy } from './proxy.js';
 import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolve, dirname } from 'node:path';
 import { oauthManager } from '../auth/oauth.js';
+import { configResolver } from '../config/index.js';
 import { log } from '../utils/logger.js';
-import { loadAndInitializeAgent, getAgentInstance } from './agent-loader.js';
+import { getAgentInstance, loadAndInitializeAgent } from './agent-loader.js';
 import {
-  loadPlugins,
   generatePluginImportMapEntries,
   getPluginNames,
+  loadPlugins,
   type Plugin,
 } from './plugin-loader.js';
+import { proxy } from './proxy.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -132,7 +132,7 @@ const createToolbarHtmlHandler =
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>stagewise</title>
+    <title>FlyonUI IDE Extension</title>
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <script type="importmap">${JSON.stringify(importMap)}</script>

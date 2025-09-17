@@ -49,17 +49,13 @@ export class ConfigResolver {
 
       // Check if we need to prompt for missing appPort
       if (!appPort && !args.silent) {
-        log.info('Bridge mode requires app port configuration.');
-
         appPort = await promptNumber({
           message: 'What port is your development app running on?',
           hint: 'This is the port where your app is currently accessible (e.g. 3000 or 8080)',
           placeholder: '',
         });
       } else if (!appPort) {
-        throw new Error(
-          'App port is required in bridge mode. Use --app-port flag or run in interactive mode.',
-        );
+        throw new Error('App port is required in bridge mode.');
       }
 
       // Save config for next time or ask user if no config exists

@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { z } from 'zod';
 import type { ConfigFile } from './types';
 
 // Zod schema for plugin configuration
@@ -37,7 +37,7 @@ const configFileSchema = z.object({
   plugins: z.array(pluginSchema).optional(),
 });
 
-export const CONFIG_FILE_NAME = 'stagewise.json';
+export const CONFIG_FILE_NAME = 'flyonui-extension.json';
 
 export interface ConfigLoadError {
   type: 'json' | 'validation' | 'other';

@@ -234,12 +234,12 @@ async function main() {
         typeof address === 'object' && address ? address.port : config.port;
       const serverUrl = `http://localhost:${port}`;
 
-      log.info(`✓ FlyonUI Extension is running on ${serverUrl}`);
+      log.info(`✓ FlyonUI IDE Extension is running on ${serverUrl}`);
       if (config.appPort) {
         log.info(`✓ Proxying app from port ${config.appPort}`);
       }
       if (config.bridgeMode) {
-        log.info('✓ Running in bridge mode (agent server disabled)');
+        log.info('✓ Running in bridge mode');
       }
 
       // Open browser automatically unless in test environment or auth flow was initiated
