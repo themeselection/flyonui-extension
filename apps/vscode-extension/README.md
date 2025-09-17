@@ -19,7 +19,7 @@ Welcome to **FlyonUI IDE Extension** — the tool for developers who want to mak
 - 🧠 Click on element(s) to let the agent know where a change should happen
 - 💡 Let FlyonUI IDE Extension do the magic!
 
-You can also use the FlyonUI Blocks from the toolbar and from the extension window to insert them directly into your project.
+You can also use the [FlyonUI Blocks](https://flyonui.com/blocks) from the toolbar and from the extension window to insert them directly into your project.
 
 > Perfect for devs tired of pasting element information and folder paths into prompts. FlyonUI IDE Extension uses real-time, browser-powered context.
 
@@ -29,7 +29,7 @@ You can also use the FlyonUI Blocks from the toolbar and from the extension wind
 - 📖 Open source
 - ⛓️ Compatible with all kinds of frameworks
 - 🧠 Compatible with all IDEs and AI Agents
-- 🚀 Access to all the FlyonUI Blocks from the FlyonUI Toolbar and IDE Extension
+- 🚀 Access to all the [FlyonUI Blocks](https://flyonui.com/blocks) from the FlyonUI Toolbar and IDE Extension
 - 📔 Add documentation of your framework as a context from toolbar.
 
 ## What is the FlyonUI IDE extension?
@@ -74,7 +74,7 @@ For more information on the license model, visit the [FAQ about the GNU Licenses
 
 ## Useful Links 🎁
 
-- [Vue CheatSheet](https://vue-cheatsheet.themeselection.com/)
-- [Freebies](https://themeselection.com/item/category/freebies/)
-- [Download Free Admin Templates](https://themeselection.com/item/category/free-admin-templates/)
-- [Bootstrap 5 CheatSheet](https://bootstrap-cheatsheet.themeselection.com/)
+- [Tailwind Components](https://flyonui.com/)
+- [Tailwind Templates](https://flyonui.com/templates)
+- [Tailwind figma design system](https://flyonui.com/figma)
+- [Tailwind AI Builder](https://flyonui.com/mcp)
