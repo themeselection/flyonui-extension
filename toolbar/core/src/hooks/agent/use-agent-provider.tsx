@@ -6,17 +6,7 @@
 // If the connection to an agent is lost, the hook will signal that by setting the returned agent to "null".
 // If a reconnect happens without the user previously selecting another option, the hook will try to reconnect to the previously selected agent.
 
-import type { ReactNode } from 'react';
-import { createContext } from 'react';
-import {
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react';
-import { createTRPCClient, createWSClient, wsLink } from '@trpc/client';
+import { useConfig } from '@/hooks/use-config';
 import type {
   InterfaceRouter,
   StagewiseInfo,
@@ -25,7 +15,17 @@ import {
   DEFAULT_STARTING_PORT,
   transformer,
 } from '@stagewise/agent-interface/toolbar';
-import { useConfig } from '@/hooks/use-config';
+import { createTRPCClient, createWSClient, wsLink } from '@trpc/client';
+import type { ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 interface AgentInfo {
   port: number;
@@ -233,7 +233,7 @@ async function scanForAgents(
   startPort: number = DEFAULT_STARTING_PORT,
 ): Promise<AgentInfo[]> {
   console.info(
-    "[stagewise] The following errors are expected ✅\n\nThey happen because we're searching for available agents...",
+    "[FlyonUI IDE Extension] The following errors are expected ✅\n\nThey happen because we're searching for available agents...",
   );
   console.debug(
     `[AgentProvider] Starting agent scan from port ${startPort}...`,
@@ -698,7 +698,7 @@ export function AgentProvider({ children }: { children?: ReactNode }) {
 
                 // Only scan for agents once when connection is first lost
                 console.info(
-                  `[stagewise] Searching for available agents after connection loss...`,
+                  `[FlyonUI IDE Extension] Searching for available agents after connection loss...`,
                 );
                 scanAgents();
               } else {

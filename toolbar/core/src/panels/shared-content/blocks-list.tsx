@@ -79,25 +79,25 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
     // Popular blocks (can be expanded based on usage patterns)
     const POPULAR_BLOCKS: BlockItem[] = [
       {
-        path: '/components/button',
-        title: 'Button',
-        description: 'Interactive button component',
+        path: '/marketing-ui/about-us/about-us-1',
+        title: 'About Us 1',
+        description:
+          "A vertical 'About Us' section featuring a centered headline, a descriptive paragraph about teamwork and success, a prominent purple call-to-action button labeled 'Read More', and a wide image of a diverse team meeting in a modern conference room placed below the text.",
         category: 'popular',
-        name: 'Button',
       },
       {
-        path: '/components/input',
-        title: 'Input',
-        description: 'Text input field component',
+        path: '/marketing-ui/hero/hero-1',
+        title: 'Hero 1',
+        description:
+          'A food-themed hero section with navigation bar, compelling headline with decorative underline, descriptive text, and call-to-action button over a high-quality food image background.',
         category: 'popular',
-        name: 'Input',
       },
       {
-        path: '/components/card',
-        title: 'Card',
-        description: 'Card container component',
+        path: '/marketing-ui/contact-us/contact-us-1',
+        title: 'Contact Us 1',
+        description:
+          "This 'Contact Us' section includes contact details like office hours, address, and phone numbers. The section also features a brief introduction about the company's offerings and a supportive image. It includes icons for office hours, address, additional office locations, and contact information, making it easy for users to get in touch with the team.",
         category: 'popular',
-        name: 'Card',
       },
       // Add more popular blocks as needed
     ];
@@ -383,9 +383,9 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
         {activeBlock && (
           <div className="flex items-center justify-center rounded-lg">
             <img
-              src={`https://cdn.flyonui.com/fy-assets/extension${activeBlock.path}.png`}
+              src={`https://cdn.flyonui.com/fy-assets/extension${activeBlock.path}.png?format=auto`}
               alt={activeBlock.title}
-              className="contain h-[200px] w-[250px] rounded-lg border border-border object-cover shadow-md"
+              className="size-full rounded-lg border border-border object-contain shadow-md"
             />
           </div>
         )}
