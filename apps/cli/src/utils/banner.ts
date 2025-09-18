@@ -119,9 +119,6 @@ export function printBanner(silent: boolean): void {
     chalk.hex('#7359D1').bold('     FLYONUI EXTENSION') +
       chalk.gray(` v${version}`),
   );
-  console.log(
-    chalk.gray('     The frontend coding agent for production codebases'),
-  );
   console.log();
   console.log();
 }

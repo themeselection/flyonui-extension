@@ -293,7 +293,11 @@ export function ChatPanel() {
       }
     }
 
-    if (isBlocksFocused && blocksListRef.current) {
+    if (blocksListRef.current && (isBlocksActivated || isBlocksFocused)) {
+      if (isBlocksActivated && !isBlocksFocused) {
+        blocksListRef.current.focusOnBlocks();
+      }
+
       const success = blocksListRef.current.selectActiveBlock();
       if (success) {
         setTimeout(() => handleFocusReturn(), 100);
