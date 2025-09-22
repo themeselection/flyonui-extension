@@ -319,7 +319,7 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
                   e.key === 'c' ||
                   e.key === 'v')) // Cmd+A, Cmd+X, Cmd+C, Cmd+V (Mac)
             ) {
-              setIsFocused(false); // IMMEDIATELY stop handling events
+              // setIsFocused(false); // IMMEDIATELY stop handling events
               if (onFocusReturn) {
                 onFocusReturn(); // Focus textarea
               }

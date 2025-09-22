@@ -466,12 +466,18 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
         focusOnDocs: () => {
           if (!isFocused) {
             setIsFocused(true);
+            console.log('Focusing on docs from line 473:', isFocused);
+            setTimeout(() => {
+              console.log('isFocused state after 2 seconds:', isFocused);
+            }, 2000);
+
             // CRITICAL: Don't reset activeIndex when re-focusing - maintain current selection
             // Only set activeIndex if no item is currently selected
             if (activeIndex === -1 && filteredDocs.length > 0) {
               setActiveIndex(0);
               setStartIndex(0);
             }
+
             // NOTE: Don't call containerRef.current?.focus() here!
             // This would steal DOM focus from textarea and hide the cursor.
             // For dual focus, textarea keeps DOM focus (cursor) while docs get logical focus (keyboard handling)
@@ -585,7 +591,7 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
                   e.key === 'c' ||
                   e.key === 'v')) // Cmd+A, Cmd+X, Cmd+C, Cmd+V (Mac)
             ) {
-              setIsFocused(false); // IMMEDIATELY stop handling events
+              // setIsFocused(false); // IMMEDIATELY stop handling events
               if (onFocusReturn) {
                 onFocusReturn(); // Focus textarea
               }
