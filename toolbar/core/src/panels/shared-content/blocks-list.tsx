@@ -84,6 +84,7 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
         description:
           "A vertical 'About Us' section featuring a centered headline, a descriptive paragraph about teamwork and success, a prominent purple call-to-action button labeled 'Read More', and a wide image of a diverse team meeting in a modern conference room placed below the text.",
         category: 'popular',
+        name: 'About Us 1',
       },
       {
         path: '/marketing-ui/hero/hero-1',
@@ -91,6 +92,7 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
         description:
           'A food-themed hero section with navigation bar, compelling headline with decorative underline, descriptive text, and call-to-action button over a high-quality food image background.',
         category: 'popular',
+        name: 'Hero 1',
       },
       {
         path: '/marketing-ui/contact-us/contact-us-1',
@@ -98,6 +100,7 @@ export const BlocksList = forwardRef<BlocksListRef, BlocksListProps>(
         description:
           "This 'Contact Us' section includes contact details like office hours, address, and phone numbers. The section also features a brief introduction about the company's offerings and a supportive image. It includes icons for office hours, address, additional office locations, and contact information, making it easy for users to get in touch with the team.",
         category: 'popular',
+        name: 'Contact Us 1',
       },
       // Add more popular blocks as needed
     ];

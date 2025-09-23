@@ -156,26 +156,22 @@ const convertAPIBlockToBlockItems = (
   ];
 };
 
-// Fuzzy search utilities for better block matching
 const calculateBlockFuzzyScore = (
   block: BlockItem,
   searchTerm: string,
 ): number => {
   const title = (block.title || '').toLowerCase();
-  const description = (block.description || '').toLowerCase();
   const name = (block.name || '').toLowerCase();
 
   // Check for exact substring matches first (highest score)
   if (title.includes(searchTerm)) return 1.0;
   if (name.includes(searchTerm)) return 0.95;
-  if (description.includes(searchTerm)) return 0.8;
 
   // Calculate similarity scores for each field
   const titleScore = getBlockStringSimilarity(searchTerm, title) * 1.0; // Title is most important
   const nameScore = getBlockStringSimilarity(searchTerm, name) * 0.9;
-  const descScore = getBlockStringSimilarity(searchTerm, description) * 0.6;
 
-  return Math.max(titleScore, nameScore, descScore);
+  return Math.max(titleScore, nameScore);
 };
 
 const getBlockStringSimilarity = (search: string, target: string): number => {
@@ -405,13 +401,10 @@ export const useBlockSearch = (
           maxResults,
         );
 
-        console.log(
-          `API returned ${apiResults.length} blocks for query "${query}"`,
-        );
-
         if (apiResults.length > 0) {
           // Combine local and API results, remove duplicates
-          const combinedResults = [...localResults, ...apiResults];
+
+          const combinedResults = [...apiResults, ...localResults];
           const uniqueResults = removeDuplicateBlocks(combinedResults);
 
           // Apply fuzzy search to the combined results for final ranking
@@ -421,9 +414,6 @@ export const useBlockSearch = (
             minScore,
           );
 
-          console.log(
-            `Final results: ${finalResults.length} blocks after combining, deduplication, and fuzzy search`,
-          );
           setSearchResults(finalResults);
         } else {
           console.log('No API results found, keeping local results only');
