@@ -1,21 +1,20 @@
-import { ToolbarButton } from './components/button';
-import { ToolbarSection } from './components/section';
 import { Glassy } from '@/components/ui/glassy';
+import { Logo } from '@/components/ui/logo';
+import { useAgentAvailability } from '@/hooks/agent/use-agent-availability';
 import { useAgents } from '@/hooks/agent/use-agent-provider';
 import { useAppState } from '@/hooks/use-app-state';
 import { cn } from '@/utils';
+import { Button } from '@headlessui/react';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
   TriangleAlertIcon,
   WifiOffIcon,
 } from 'lucide-react';
-import { RegularContent } from './contents/regular';
+import { ToolbarButton } from './components/button';
+import { ToolbarSection } from './components/section';
 import { DisconnectedContent } from './contents/disconnected';
-import { Button } from '@headlessui/react';
-import { Logo } from '@/components/ui/logo';
-import { useAgentAvailability } from '@/hooks/agent/use-agent-availability';
-import { AnimatedGradientBackground } from '@/components/ui/animated-gradient-background';
+import { RegularContent } from './contents/regular';
 
 export function Toolbar({
   draggableHandleRef,
@@ -61,12 +60,7 @@ export function Toolbar({
           (requiresUserAttention || !isAvailable) && 'bg-orange-500',
         )}
       >
-        {!requiresUserAttention && isAvailable && (
-          <>
-            <AnimatedGradientBackground className="-z-10 absolute inset-0 size-full" />
-            <Logo color="white" className="mr-px mb-px size-1/2 shadow-2xs" />
-          </>
-        )}
+        {!requiresUserAttention && isAvailable && <Logo />}
         {requiresUserAttention && (
           <WifiOffIcon className="size-5 stroke-white" />
         )}
