@@ -38,17 +38,19 @@ export function SettingsPanel() {
         <div className="space-y-4">
           <LicenseKeyManager />
           <AgentSelection showConnectedDetails />
-          <hr className="-mx-4 text-zinc-500/15" />
+          <hr className="-mx-4 text-zinc-500/15 dark:text-zinc-500/30" />
           <CompactSettingsPositionSelector />
-          <hr className="-mx-4 text-zinc-500/15" />
+          <hr className="-mx-4 text-zinc-500/15 dark:text-zinc-500/30" />
           <PromptActionSelector />
-          <hr className="-mx-4 text-zinc-500/15" />
+          <hr className="-mx-4 text-zinc-500/15 dark:text-zinc-500/30" />
           <CompactThemeToggle />
-          <hr className="-mx-4 text-zinc-500/15" />
+          <hr className="-mx-4 text-zinc-500/15 dark:text-zinc-500/30" />
           {/* Shortcut info for toggling the chat panel */}
           <div>
             <div className="flex items-center justify-between">
-              <div className="font-medium text-sm">Toggle chat</div>
+              <div className="font-medium text-foreground text-sm">
+                Toggle chat
+              </div>
               <div className="text-muted-foreground text-xs">
                 {useHotkeyListenerComboText(HotkeyActions.TOGGLE_CHAT)}
               </div>

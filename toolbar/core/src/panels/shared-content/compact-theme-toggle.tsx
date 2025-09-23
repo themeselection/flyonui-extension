@@ -32,7 +32,7 @@ export function CompactThemeToggle() {
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex flex-col">
-        <span className="font-medium text-sm">Theme</span>
+        <span className="font-medium text-foreground text-sm">Theme</span>
         <span className="text-muted-foreground text-xs">
           Choose the appearance.
         </span>

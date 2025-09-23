@@ -28,7 +28,9 @@ export function PromptActionSelector() {
     <div>
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <div className="font-medium text-sm">Prompt action</div>
+          <div className="font-medium text-foreground text-sm">
+            Prompt action
+          </div>
           <div className="text-muted-foreground text-xs">
             Set your prompt action.
           </div>
@@ -37,7 +39,7 @@ export function PromptActionSelector() {
           <DropdownMenuButton>
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               className="flex items-center gap-2 rounded-md text-xs"
             >
               {getActionIcon()}
