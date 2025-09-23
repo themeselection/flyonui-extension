@@ -86,7 +86,7 @@ function PanelFooter({
   return (
     <footer
       className={cn(
-        'rounded-b-[inherit] border-zinc-500/15 border-t bg-background/95 pt-2 pr-3 pb-3 pl-4 text-foreground text-sm',
+        'rounded-b-[inherit] border-zinc-500/15 border-t bg-background pt-2 pr-3 pb-3 pl-4 text-foreground text-sm',
         className,
       )}
     >

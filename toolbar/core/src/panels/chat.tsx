@@ -470,7 +470,6 @@ export function ChatPanel() {
         className={cn(
           'mt-0 origin-top px-2 pt-1 pb-2 duration-150 ease-out',
           !enableInputField && 'pointer-events-none opacity-80 brightness-75',
-          chatState.isPromptCreationActive && 'bg-red-400/10',
           anyMessageInChat ? 'h-32' : 'h-36',
           !anyMessageInChat &&
             agentState.state === AgentStateType.IDLE &&
@@ -602,7 +601,7 @@ export function ChatPanel() {
               size="sm"
               variant="outline"
             >
-              {chatState.isPromptCreationActive ? 'Close' : 'Open'} Inspector
+              {chatState.isPromptCreationActive ? 'Close' : 'Open'} Selector
             </Button>
           </div>
         </div>

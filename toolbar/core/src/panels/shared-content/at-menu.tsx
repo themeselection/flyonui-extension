@@ -1,7 +1,7 @@
 import { cn } from '@/utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Context7Logo } from './context7-logo';
-import { SVGLLogo } from './svgl-logo';
+import { FlyonUILogo } from './flyonui-logo';
 
 interface AtMenuProps {
   onSelect: (type: 'docs' | 'blocks') => void;
@@ -134,7 +134,7 @@ export function AtMenu({ onSelect, onFocusReturn, searchQuery }: AtMenuProps) {
           {Icon === 'Context7Logo' ? (
             <Context7Logo className="h-4 w-4" />
           ) : (
-            <SVGLLogo
+            <FlyonUILogo
               className={cn(
                 'h-4 w-4',
                 index === activeIndex

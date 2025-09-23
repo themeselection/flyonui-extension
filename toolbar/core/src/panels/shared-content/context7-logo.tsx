@@ -7,36 +7,27 @@ interface Context7LogoProps {
 export function Context7Logo({ className }: Context7LogoProps) {
   return (
     <svg
-      viewBox="0 0 42 47"
+      viewBox="0 0 28 28"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn('h-4 w-4', className)}
     >
-      {/* Context7 Logo - "7" with brackets styled design */}
-      {/* Left bracket */}
+      <rect width="28" height="28" rx="4" fill="#059669" />
       <path
-        d="M11.94 26.6C11.94 32.54 9.53 37.49 5.61 42.06H14.74V46.48H0.74V42.28C5.03 37.44 6.68 33.49 6.68 26.6H11.94Z"
-        className="fill-foreground dark:fill-background"
+        d="M10.5724 15.2565C10.5724 17.5025 9.6613 19.3778 8.17805 21.1047H11.6319L11.6319 22.7786H6.33459V21.1895C7.95557 19.3566 8.58065 17.8628 8.58065 15.2565L10.5724 15.2565Z"
+        fill="white"
       />
-      {/* Right bracket */}
       <path
-        d="M30.06 26.6C30.06 32.54 32.47 37.49 36.39 42.06H27.26V46.48H41.26V42.28C36.97 37.44 35.32 33.49 35.32 26.6H30.06Z"
-        className="fill-foreground dark:fill-background"
+        d="M17.4276 15.2565C17.4276 17.5025 18.3387 19.3778 19.822 21.1047H16.3681V22.7786H21.6654V21.1895C20.0444 19.3566 19.4194 17.8628 19.4194 15.2565H17.4276Z"
+        fill="white"
       />
-      {/* Top left bracket */}
       <path
-        d="M11.94 19.96C11.94 14.02 9.53 9.07 5.61 4.5H14.74V0.08H0.74V4.28C5.03 9.12 6.68 13.07 6.68 19.96H11.94Z"
-        className="fill-foreground dark:fill-background"
+        d="M10.5724 12.7435C10.5724 10.4975 9.66131 8.62224 8.17807 6.89532L11.6319 6.89532V5.22137L6.33461 5.22137V6.81056C7.95558 8.64343 8.58066 10.1373 8.58066 12.7435L10.5724 12.7435Z"
+        fill="white"
       />
-      {/* Top right bracket */}
       <path
-        d="M30.06 19.96C30.06 14.02 32.47 9.07 36.39 4.5H27.26V0.08H41.26V4.28C36.97 9.12 35.32 13.07 35.32 19.96H30.06Z"
-        className="fill-foreground dark:fill-background"
-      />
-      {/* Seven shape in the middle */}
-      <path
-        d="M16.5 15H25.5V18H20L18 23.5V27H15V22.5L17.5 15Z"
-        className="fill-foreground dark:fill-background"
+        d="M17.4276 12.7435C17.4276 10.4975 18.3387 8.62224 19.822 6.89532L16.3681 6.89532L16.3681 5.22138L21.6654 5.22138V6.81056C20.0444 8.64343 19.4194 10.1373 19.4194 12.7435H17.4276Z"
+        fill="white"
       />
     </svg>
   );
