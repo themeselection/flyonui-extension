@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FlyonUI">
+      <!-- Scaled glyph to better fill the 32x32 viewBox while keeping safe padding -->
+      <g transform="translate(16 16) scale(1.6) translate(-16 -16)">
+            <path d="M15.6 19.8C15.8 19.56 16.2 19.55 16.4 19.81L19.6 24.2C19.87 24.52 19.65 24.95 19.25 24.95H12.75C12.35 24.96 12.13 24.53 12.4 24.2L15.6 19.8ZM15.64 8.5C15.89 8.17 16.37 8.17 16.63 8.5L24.79 19.17C25.11 19.57 24.85 20.1 24.27 20.1H21.77C21.59 20.1 21.43 20.02 21.34 19.87L16.63 13.13C16.37 12.81 15.89 12.81 15.64 13.13L10.93 19.87C10.84 20.02 10.68 20.1 10.5 20.1H8.0C7.42 20.1 7.16 19.57 7.48 19.17L15.64 8.5Z" 
+                              fill="currentColor"/>
+      </g>
+</svg>

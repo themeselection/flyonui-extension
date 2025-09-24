@@ -44,7 +44,7 @@
         {
           "id": "flyonui-sidebar",
           "title": "FlyonUI Extension",
-          "icon": "$(rocket)"
+          "icon": "./icon.svg"
         }
       ]
     },
