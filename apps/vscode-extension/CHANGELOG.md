@@ -1,5 +1,10 @@
 # Flyonui IDE Extension
 
+## 1.0.1
+
+- Fixed an UI Related Issues.
+- Improved Search performance and accuracy.
+
 ## 1.0.0
 
 - Bridge mode is now enabled by default for smoother IDE agent communication with toolbar.
