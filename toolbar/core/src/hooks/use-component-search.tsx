@@ -20,15 +20,45 @@ interface SearchResult {
   score: number; // Higher score = better match
 }
 
+// Common UI terms to ignore in search queries
+const UI_TERMS_TO_IGNORE = new Set([
+  'component',
+  'components',
+  'section',
+  'sections',
+  'element',
+  'elements',
+  'ui',
+  'part',
+  'parts',
+  'piece',
+  'pieces',
+  'block',
+  'blocks',
+  'module',
+  'modules',
+  'item',
+  'items',
+]);
+
 // Fuzzy search function
 export function searchComponents(
   data: ComponentData,
   query: string,
-  minScore = 0.3,
+  minScore = 0.35,
 ): Component[] {
   if (!query.trim()) return [];
 
-  const searchTerm = query.toLowerCase().trim();
+  // Filter out common UI terms from the search query
+  const cleanedQuery = query
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter((word) => !UI_TERMS_TO_IGNORE.has(word))
+    .join(' ');
+
+  // If all words were filtered out, use original query
+  const searchTerm = cleanedQuery || query.toLowerCase().trim();
   const results: SearchResult[] = [];
 
   const jsonData = JSON.parse(data as any);
@@ -60,25 +90,61 @@ export function searchComponents(
 // Calculate fuzzy match score (0-1, higher = better match)
 function calculateFuzzyScore(component: Component, searchTerm: string): number {
   const name = component.name.toLowerCase();
-  const description = component.description.toLowerCase();
 
-  // Check for exact substring matches first (highest score)
-  if (name.includes(searchTerm)) return 1.0;
-  if (description.includes(searchTerm)) return 0.8;
+  // Create a cleaned version of search term for exact matching
+  const cleanedSearchTerm = searchTerm
+    .split(/\s+/)
+    .filter((word) => !UI_TERMS_TO_IGNORE.has(word))
+    .join(' ');
 
-  // Calculate similarity scores
-  const nameScore = getStringSimilarity(searchTerm, name) * 0.9; // Name is more important
-  const descScore = getStringSimilarity(searchTerm, description) * 0.6;
+  const termToMatch = cleanedSearchTerm || searchTerm;
 
-  return Math.max(nameScore, descScore);
+  // Industry standard: Prioritize exact and prefix matches
+  if (name === termToMatch) return 1.0; // Perfect match
+  if (name.startsWith(termToMatch)) return 0.95; // Prefix match
+  if (name.includes(termToMatch)) return 0.85; // Contains match
+
+  // Check individual word matches for multi-word searches
+  const meaningfulWords = termToMatch.split(/\s+/);
+  for (const word of meaningfulWords) {
+    if (word.length > 2) {
+      if (name.startsWith(word)) return 0.8; // Word prefix match
+      if (name.includes(word)) return 0.7; // Word contains match
+    }
+  }
+
+  // Calculate similarity scores with improved typo tolerance - only use name
+  const nameScore = getStringSimilarity(searchTerm, name);
+
+  return nameScore;
 }
 
 function getStringSimilarity(search: string, target: string): number {
-  // 1. Partial word matching
-  const searchWords = search.split(/\s+/);
+  // Industry standard: Allow reasonable typo tolerance for UI search
+  const maxAllowedDistance = Math.max(2, Math.floor(search.length * 0.25)); // 25% error rate max
+  const distance = levenshteinDistance(search, target);
+
+  // Reject if too many errors
+  if (distance > maxAllowedDistance) {
+    return 0;
+  }
+
+  // 1. Enhanced partial word matching with UI term filtering
+  const searchWords = search
+    .split(/\s+/)
+    .filter((word) => !UI_TERMS_TO_IGNORE.has(word.toLowerCase()));
   const targetWords = target.split(/\s+/);
 
   let wordMatches = 0;
+  let totalSearchWords = searchWords.length;
+
+  // If no meaningful search words remain, fall back to original search
+  if (totalSearchWords === 0) {
+    const originalSearchWords = search.split(/\s+/);
+    searchWords.push(...originalSearchWords);
+    totalSearchWords = originalSearchWords.length;
+  }
+
   searchWords.forEach((searchWord) => {
     targetWords.forEach((targetWord) => {
       if (targetWord.includes(searchWord) || searchWord.includes(targetWord)) {
@@ -86,20 +152,20 @@ function getStringSimilarity(search: string, target: string): number {
       }
     });
   });
-  const wordScore =
-    wordMatches / Math.max(searchWords.length, targetWords.length);
 
-  // 2. Levenshtein distance for typo tolerance
+  // Use only meaningful search words for scoring
+  const wordScore = totalSearchWords > 0 ? wordMatches / totalSearchWords : 0;
+
+  // 2. Controlled Levenshtein distance scoring with better tolerance
+  const maxLength = Math.max(search.length, target.length);
   const levenScore =
-    1 -
-    levenshteinDistance(search, target) /
-      Math.max(search.length, target.length);
+    distance === 0 ? 1.0 : Math.max(0, 1 - distance / maxLength);
 
-  // 3. Character overlap
+  // 3. Character overlap for additional similarity
   const overlapScore = getCharacterOverlap(search, target);
 
-  // Combine scores (weighted average)
-  return wordScore * 0.5 + levenScore * 0.3 + overlapScore * 0.2;
+  // Balanced weights for better typo tolerance
+  return wordScore * 0.4 + levenScore * 0.4 + overlapScore * 0.2;
 }
 
 // Calculate Levenshtein distance (edit distance)

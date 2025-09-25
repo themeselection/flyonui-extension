@@ -694,18 +694,6 @@ export const DocsList = forwardRef<DocsListRef, DocsListProps>(
                     Recent
                   </div>
                 )}
-                {/* Show Popular header only if there are visible popular docs */}
-                {visibleDocs.some((doc) => doc.category === 'popular') && (
-                  <div
-                    className={cn(
-                      'px-1 font-medium text-muted-foreground text-xs',
-                      visibleDocs.some((doc) => doc.category === 'recent') &&
-                        'mt-2',
-                    )}
-                  >
-                    Popular
-                  </div>
-                )}
               </>
             )}
 

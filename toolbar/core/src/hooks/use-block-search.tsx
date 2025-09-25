@@ -163,11 +163,26 @@ const calculateBlockFuzzyScore = (
   const title = (block.title || '').toLowerCase();
   const name = (block.name || '').toLowerCase();
 
-  // Check for exact substring matches first (highest score)
-  if (title.includes(searchTerm)) return 1.0;
-  if (name.includes(searchTerm)) return 0.95;
+  // Industry standard: Prioritize exact and prefix matches
+  if (title === searchTerm) return 1.0; // Perfect title match
+  if (name === searchTerm) return 0.98; // Perfect name match
+  if (title.startsWith(searchTerm)) return 0.95; // Title prefix match
+  if (name.startsWith(searchTerm)) return 0.92; // Name prefix match
+  if (title.includes(searchTerm)) return 0.85; // Title contains match
+  if (name.includes(searchTerm)) return 0.8; // Name contains match
 
-  // Calculate similarity scores for each field
+  // Check individual word matches for multi-word searches
+  const searchWords = searchTerm.split(/\s+/);
+  for (const word of searchWords) {
+    if (word.length > 2) {
+      if (title.startsWith(word)) return 0.75;
+      if (name.startsWith(word)) return 0.72;
+      if (title.includes(word)) return 0.65;
+      if (name.includes(word)) return 0.62;
+    }
+  }
+
+  // Calculate similarity scores with improved typo tolerance
   const titleScore = getBlockStringSimilarity(searchTerm, title) * 1.0; // Title is most important
   const nameScore = getBlockStringSimilarity(searchTerm, name) * 0.9;
 
@@ -175,32 +190,57 @@ const calculateBlockFuzzyScore = (
 };
 
 const getBlockStringSimilarity = (search: string, target: string): number => {
-  // 1. Partial word matching
+  // 1. Enhanced word-based matching for block titles like "Checkout 1", "Hero 2"
   const searchWords = search.split(/\s+/);
   const targetWords = target.split(/\s+/);
 
-  let wordMatches = 0;
+  let bestWordScore = 0;
+
+  // Check each search word against each target word with typo tolerance
   searchWords.forEach((searchWord) => {
     targetWords.forEach((targetWord) => {
+      // Direct word matches
       if (targetWord.includes(searchWord) || searchWord.includes(targetWord)) {
-        wordMatches++;
+        bestWordScore = Math.max(bestWordScore, 1.0);
+        return;
+      }
+
+      // Typo-tolerant word matching
+      const wordDistance = levenshteinDistance(searchWord, targetWord);
+      const maxWordDistance = Math.max(1, Math.floor(searchWord.length * 0.3)); // 30% tolerance for words
+
+      if (wordDistance <= maxWordDistance) {
+        const wordSimilarity =
+          1 - wordDistance / Math.max(searchWord.length, targetWord.length);
+        bestWordScore = Math.max(bestWordScore, wordSimilarity * 0.9); // High score for word matches
       }
     });
   });
-  const wordScore =
-    wordMatches / Math.max(searchWords.length, targetWords.length);
 
-  // 2. Levenshtein distance for typo tolerance
+  // If we found good word matches, return that score
+  if (bestWordScore > 0.5) {
+    return bestWordScore;
+  }
+
+  // Fall back to full string comparison for exact typos
+  const maxAllowedDistance = Math.max(2, Math.floor(search.length * 0.25)); // 25% error rate max
+  const distance = levenshteinDistance(search, target);
+
+  // Reject if too many errors
+  if (distance > maxAllowedDistance) {
+    return 0;
+  }
+
+  // 2. Full string Levenshtein distance scoring
+  const maxLength = Math.max(search.length, target.length);
   const levenScore =
-    1 -
-    levenshteinDistance(search, target) /
-      Math.max(search.length, target.length);
+    distance === 0 ? 1.0 : Math.max(0, 1 - distance / maxLength);
 
-  // 3. Character overlap
+  // 3. Character overlap for additional similarity
   const overlapScore = getCharacterOverlap(search, target);
 
-  // Combine scores (weighted average)
-  return wordScore * 0.5 + levenScore * 0.3 + overlapScore * 0.2;
+  // Combine full string scores
+  return levenScore * 0.6 + overlapScore * 0.4;
 };
 
 const levenshteinDistance = (str1: string, str2: string): number => {
@@ -248,7 +288,7 @@ const naturalSort = (a: string, b: string): number => {
 const fuzzySearchBlocks = (
   blocks: BlockItem[],
   query: string,
-  minScore = 0.2,
+  minScore = 0.35,
 ): BlockItem[] => {
   if (!query.trim() || blocks.length === 0) {
     return blocks;
@@ -260,6 +300,7 @@ const fuzzySearchBlocks = (
   // Calculate fuzzy scores for all blocks
   blocks.forEach((block) => {
     const score = calculateBlockFuzzyScore(block, searchTerm);
+    console.log(`Block: ${block.title}, Score: ${score.toFixed(3)}`);
     if (score >= minScore) {
       results.push({ block, score });
     }
@@ -288,7 +329,7 @@ const performLocalSearch = (
   query: string,
 ): BlockItem[] => {
   // Use fuzzy search for local blocks too for consistency
-  return fuzzySearchBlocks(blocks, query, 0.1); // Lower threshold for local search
+  return fuzzySearchBlocks(blocks, query, 0.3); // Slightly lower threshold for local search
 };
 
 const fetchAndSearchBlocks = async (
@@ -364,7 +405,7 @@ export const useBlockSearch = (
   const {
     licenseKey,
     debounceMs = 300,
-    minScore = 0.2,
+    minScore = 0.35,
     maxResults = 20,
   } = options;
 
