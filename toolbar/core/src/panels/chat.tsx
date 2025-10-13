@@ -89,7 +89,35 @@ export function ChatPanel() {
 
   // Handle @ menu selection
   const handleAtMenuSelect = useCallback(
-    (type: 'docs' | 'blocks') => {
+    (type: 'docs' | 'blocks' | 'flyonui-docs') => {
+      // Handle direct FlyonUI docs selection
+      if (type === 'flyonui-docs') {
+        // Directly add FlyonUI docs to context
+        const flyonUIDoc: DocsItem = {
+          id: '/themeselection/flyonui-docs',
+          title: 'FlyonUI',
+          description:
+            'The easiest, free and open-source Tailwind CSS component library',
+          category: 'popular',
+        };
+
+        chatState.addChatDocsContext({
+          id: flyonUIDoc.id,
+          title: flyonUIDoc.title,
+          description: flyonUIDoc.description,
+          category: flyonUIDoc.category,
+          code: '',
+          install_command: `// Documentation ${flyonUIDoc.title}`,
+        });
+
+        // Clear the input and don't set any mode
+        chatState.setChatInput('');
+        setAtMode(null);
+        setIsDocsActivated(false);
+        setIsBlocksActivated(false);
+        return;
+      }
+
       setAtMode(type);
       // Replace @ with the selected mode prefix and add a space for further input
       chatState.setChatInput(`@${type} `);

@@ -4,13 +4,13 @@ import { Context7Logo } from './context7-logo';
 import { FlyonUILogo } from './flyonui-logo';
 
 interface AtMenuProps {
-  onSelect: (type: 'docs' | 'blocks') => void;
+  onSelect: (type: 'docs' | 'blocks' | 'flyonui-docs') => void;
   onFocusReturn?: () => void;
   searchQuery?: string;
 }
 
 const options: Array<{
-  type: 'docs' | 'blocks';
+  type: 'docs' | 'blocks' | 'flyonui-docs';
   label: string;
   Icon: 'Context7Logo' | 'SVGLLogo' | null;
 }> = [
@@ -18,6 +18,11 @@ const options: Array<{
     type: 'docs',
     label: 'Documentation',
     Icon: 'Context7Logo',
+  },
+  {
+    type: 'flyonui-docs',
+    label: 'FlyonUI Docs',
+    Icon: 'SVGLLogo',
   },
   {
     type: 'blocks',
@@ -53,7 +58,7 @@ export function AtMenu({ onSelect, onFocusReturn, searchQuery }: AtMenuProps) {
   }, [filteredOptions.length]);
 
   const handleClick = useCallback(
-    (type: 'docs' | 'blocks') => {
+    (type: 'docs' | 'blocks' | 'flyonui-docs') => {
       onSelect(type);
     },
     [onSelect],
