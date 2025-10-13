@@ -233,13 +233,13 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
 
       const parts = [];
       if (htmlSnippet?.code) {
-        parts.push(`// HTML Code\n\n${htmlSnippet.code}`);
+        parts.push(`<!-- HTML Code -->\n\n${htmlSnippet.code}`);
       }
       if (cssSnippet?.code) {
-        parts.push(`// CSS Code\n\n${cssSnippet.code}`);
+        parts.push(`<!-- CSS Code -->\n\n${cssSnippet.code}`);
       }
       if (jsSnippet?.code) {
-        parts.push(`// JS Code\n\n${jsSnippet.code}`);
+        parts.push(`<!-- JS Code -->\n\n${jsSnippet.code}`);
       }
       return parts.join('\n\n');
     } catch (error) {
@@ -474,7 +474,7 @@ Follow the below instructions to integrate this component into the codebase:
 
     try {
       const response = await fetch(
-        'https://flyonui.com/staging/api/mcp/validate-license-key',
+        'https://flyonui.com/api/mcp/validate-license-key',
         {
           method: 'GET',
           headers: {

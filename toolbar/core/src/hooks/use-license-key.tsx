@@ -64,7 +64,7 @@ export function useLicenseKey() {
       }
 
       const trimmedLicenseKey = key.trim();
-      const url = 'https://flyonui.com/staging/api/mcp/validate-license-key';
+      const url = 'https://flyonui.com/api/mcp/validate-license-key';
       // Will try to implement backend validation with the help of API.
 
       // TODO: Update this staging URL to production when ready

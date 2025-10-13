@@ -484,12 +484,11 @@ function renderComponentDetails(blocks, componentName, componentPath, error) {
 
   // Check if blocks exist and have content
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
-    console.log('No blocks found, showing no-results message');
     const noBlocks = document.createElement('div');
     noBlocks.className = 'no-results';
     noBlocks.innerHTML = `
-      <p>📄 No blocks found for this component</p>
-      <p>This component might not have detailed block information available</p>
+      <p>📄 No blocks found.</p>
+      <p>Please <a href="https://www.flyonui.com/pro">Upgrade to Pro</a> for more blocks.</p>
     `;
     grid.appendChild(noBlocks);
     return;
