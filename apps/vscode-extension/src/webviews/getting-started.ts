@@ -9,7 +9,7 @@ export function createGettingStartedPanel(
 ): vscode.WebviewPanel {
   const panel = vscode.window.createWebviewPanel(
     'stagewiseGettingStarted',
-    'Getting Started with stagewise',
+    'Getting Started with FlyonUI IDE Extension',
     vscode.ViewColumn.One,
     {
       enableScripts: true,
@@ -30,7 +30,7 @@ export function createGettingStartedPanel(
             cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
           });
           terminal.show();
-          terminal.sendText('npx flyonui-extension-cli', false);
+          terminal.sendText('npx flyonui-extension-cli@latest', false);
           break;
         }
         case 'openApiPanel':
