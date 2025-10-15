@@ -92,7 +92,6 @@ const fetchBlockDetails = async (
     const headers = buildAPIHeaders(licenseKey);
 
     const url = `https://flyonui.com/api/mcp${path}?type=mcp`;
-    console.log(`Fetching block details from: ${url}`);
 
     const response = await fetch(url, { headers });
 
@@ -104,7 +103,6 @@ const fetchBlockDetails = async (
     }
 
     const data = await response.json();
-    console.log(`Block details for ${path}:`, data);
 
     return data;
   } catch (error) {
@@ -300,7 +298,6 @@ const fuzzySearchBlocks = (
   // Calculate fuzzy scores for all blocks
   blocks.forEach((block) => {
     const score = calculateBlockFuzzyScore(block, searchTerm);
-    console.log(`Block: ${block.title}, Score: ${score.toFixed(3)}`);
     if (score >= minScore) {
       results.push({ block, score });
     }
@@ -316,10 +313,6 @@ const fuzzySearchBlocks = (
     // For items with similar scores, use natural sorting (handles Hero 1, Hero 2, Hero 11 correctly)
     return naturalSort(a.block.title || '', b.block.title || '');
   });
-
-  console.log(
-    `Fuzzy search for "${query}": ${sortedResults.length}/${blocks.length} blocks matched (min score: ${minScore})`,
-  );
 
   return sortedResults.map((result) => result.block);
 };
@@ -342,10 +335,6 @@ const fetchAndSearchBlocks = async (
     const metadata = await fetchBlockMetadata(licenseKey);
     const searchResults = searchComponents(metadata, query);
 
-    console.log(
-      `Search query: "${query}", Found ${searchResults.length} matching categories/paths`,
-    );
-
     if (searchResults.length === 0) {
       return [];
     }
@@ -354,15 +343,11 @@ const fetchAndSearchBlocks = async (
     const limitedResults = searchResults.slice(0, maxResults);
 
     const blockDetailsPromises = limitedResults.map(async (result, index) => {
-      console.log(
-        `Fetching blocks for path ${index + 1}/${limitedResults.length}: ${result.path}`,
-      );
       const blockResponse = await fetchBlockDetails(result.path, licenseKey);
       const blocks = convertAPIBlockToBlockItems(
         result,
         blockResponse || undefined,
       );
-      console.log(`Path ${result.path} returned ${blocks.length} blocks`);
       return blocks;
     });
 
@@ -371,14 +356,9 @@ const fetchAndSearchBlocks = async (
     // Flatten the array of arrays into a single array of blocks
     const allBlocks = blockArrays.flat().filter((block) => block !== null);
 
-    console.log(`Total blocks before fuzzy search: ${allBlocks.length}`);
-
     // Step 3: Apply fuzzy search to the final block results for better relevance
     const fuzzySearchedBlocks = fuzzySearchBlocks(allBlocks, query);
 
-    console.log(
-      `Total blocks after fuzzy search: ${fuzzySearchedBlocks.length}`,
-    );
     return fuzzySearchedBlocks;
   } catch (error) {
     console.warn('FlyonUI API search failed, using local results only:', error);

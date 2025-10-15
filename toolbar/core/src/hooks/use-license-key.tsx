@@ -126,8 +126,6 @@ export function useLicenseKey() {
 
         setLicenseState(newState);
 
-        console.log('License key saved successfully');
-
         // Trigger a storage event for other components/tabs to sync
         window.dispatchEvent(
           new StorageEvent('storage', {
@@ -153,8 +151,6 @@ export function useLicenseKey() {
         isValidated: false,
         lastValidated: null,
       });
-
-      console.log('License key removed successfully');
 
       // Trigger a storage event for other components/tabs to sync
       window.dispatchEvent(
