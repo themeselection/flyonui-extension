@@ -3,7 +3,7 @@
   "displayName": "FlyonUI IDE Extension",
   "private": true,
   "description": "Edit Your UI With a Prompt.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "themeselection",
   "icon": "icon.png",
   "engines": {

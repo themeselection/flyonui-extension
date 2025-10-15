@@ -1,5 +1,10 @@
 # Flyonui IDE Extension
 
+## 1.0.3
+
+- Fixed CORS issues affecting API calls and block searches.
+- Removed unnecessary console logs for cleaner output to users.
+
 ## 1.0.2
 
 - Fixed issues with toolbar integration and block access.
