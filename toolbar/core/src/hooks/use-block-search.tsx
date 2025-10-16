@@ -17,11 +17,13 @@ interface APIBlockMetadata {
 }
 
 interface APIBlockResponse {
-  blocks?: Array<{
-    path: string;
-    title?: string;
-    blockDescription?: string;
-  }>;
+  blocks?: ApiBlockItem[];
+}
+
+interface ApiBlockItem {
+  path: string;
+  title?: string;
+  blockDescription?: string;
 }
 
 interface BlockWithScore {
@@ -123,9 +125,20 @@ const extractTitleFromPath = (path: string): string => {
 
 const convertAPIBlockToBlockItems = (
   apiBlock: APIBlockMetadata,
-  blockResponse?: APIBlockResponse,
+  blockResponse?: APIBlockResponse | ApiBlockItem[],
 ): BlockItem[] => {
-  // If we have block response with multiple blocks, convert all of them
+  // For free response, it only returns an array of blocks
+  if (Array.isArray(blockResponse)) {
+    return blockResponse.map((block) => ({
+      path: block.path,
+      title: block.title || extractTitleFromPath(block.path),
+      description: block.blockDescription || `${block.title} component`,
+      category: 'popular' as const,
+      name: block.title || extractTitleFromPath(block.path),
+    }));
+  }
+
+  // it returns blocks wrapped in the blocks object.
   if (blockResponse?.blocks && blockResponse.blocks.length > 0) {
     return blockResponse.blocks.map((block, index) => {
       const blockPath = block.path || `${apiBlock.path}/${index + 1}`;
@@ -141,17 +154,6 @@ const convertAPIBlockToBlockItems = (
       };
     });
   }
-
-  // Fallback to single block from metadata if no detailed blocks found
-  return [
-    {
-      path: apiBlock.path,
-      title: apiBlock.name || extractTitleFromPath(apiBlock.path),
-      description: apiBlock.description || `Component at ${apiBlock.path}`,
-      category: 'popular' as const,
-      name: apiBlock.name || extractTitleFromPath(apiBlock.path),
-    },
-  ];
 };
 
 const calculateBlockFuzzyScore = (
@@ -344,10 +346,13 @@ const fetchAndSearchBlocks = async (
 
     const blockDetailsPromises = limitedResults.map(async (result, index) => {
       const blockResponse = await fetchBlockDetails(result.path, licenseKey);
+
+      console.log(`Fetched block details for ${result.path}:`, blockResponse);
       const blocks = convertAPIBlockToBlockItems(
         result,
         blockResponse || undefined,
       );
+      console.log(`Converted API block to items for ${result.path}:`, blocks);
       return blocks;
     });
 
@@ -358,6 +363,10 @@ const fetchAndSearchBlocks = async (
 
     // Step 3: Apply fuzzy search to the final block results for better relevance
     const fuzzySearchedBlocks = fuzzySearchBlocks(allBlocks, query);
+
+    console.log(`Fuzzy searched down to ${fuzzySearchedBlocks.length} blocks`);
+
+    console.log('Fuzzy Searched Blocks:', fuzzySearchedBlocks);
 
     return fuzzySearchedBlocks;
   } catch (error) {
