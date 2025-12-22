@@ -16,7 +16,7 @@ import { Toolbar } from '@/toolbar';
 import { cn } from '@/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-const TOOLBAR_POSITION_KEY = 'stagewise_toolbar_toolbar_position';
+const TOOLBAR_POSITION_KEY = 'flyonui_toolbar_toolbar_position';
 
 /**
  * Get the stored toolbar position from localStorage

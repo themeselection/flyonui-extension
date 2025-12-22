@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const POSITION_KEY = 'stagewise_toolbar_toolbar_position';
+const POSITION_KEY = 'flyonui_toolbar_toolbar_position';
 
 const POSITIONS = [
   {

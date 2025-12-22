@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 // License key storage key
-const LICENSE_KEY_STORAGE_KEY = 'stagewise_pro_license_key';
+const LICENSE_KEY_STORAGE_KEY = 'flyonui_pro_license_key';
 
 interface LicenseKeyState {
   licenseKey: string | null;

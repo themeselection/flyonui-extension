@@ -28,7 +28,7 @@ export interface BlocksListRef {
   selectActiveBlock: () => boolean;
 }
 
-const RECENT_BLOCKS_KEY = 'toolbar-blocks-recent';
+const RECENT_BLOCKS_KEY = 'flyonui-toolbar-blocks-recent';
 
 // Helper functions for localStorage
 const getRecentBlocks = (): BlockItem[] => {
