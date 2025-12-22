@@ -641,16 +641,18 @@ function showApiData(data, error) {
   }
 }
 
-function updateLicenseStatus(isValid, licenseKey) {
+function updateLicenseStatus(isValid, licenseKey, resetButton = true) {
   const statusElement = document.getElementById('license-status');
-  const saveBtn = document.getElementById('save-license-btn');
   const input = document.getElementById('license-key-input');
   const currentLicenseDiv = document.getElementById('license-current');
   const currentLicenseText = document.getElementById('current-license-text');
 
-  // Re-enable save button
-  saveBtn.disabled = false;
-  saveBtn.textContent = 'Save';
+  // Re-enable save button if requested
+  if (resetButton) {
+    const saveBtn = document.getElementById('save-license-btn');
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
 
   if (isValid && licenseKey) {
     statusElement.textContent = 'Valid';
@@ -669,60 +671,25 @@ function updateLicenseStatus(isValid, licenseKey) {
   }
 }
 
-function updateUI(data) {
-  // Update license info
-  if (data.licenseInfo) {
-    const statusElement = document.getElementById('license-status');
-    const input = document.getElementById('license-key-input');
-    const currentLicenseDiv = document.getElementById('license-current');
-    const currentLicenseText = document.getElementById('current-license-text');
-
-    if (data.licenseInfo.hasLicense) {
-      statusElement.textContent = data.licenseInfo.isValid
-        ? 'Valid'
-        : 'Invalid';
-      statusElement.className = `license-status ${data.licenseInfo.isValid ? 'valid' : 'invalid'}`;
-      input.value = data.licenseInfo.licenseKey;
-
-      if (data.licenseInfo.isValid) {
-        currentLicenseDiv.style.display = 'block';
-        currentLicenseText.textContent = data.licenseInfo.licenseKey;
-      } else {
-        currentLicenseDiv.style.display = 'none';
-      }
-    } else {
-      statusElement.textContent = 'No License';
-      statusElement.className = 'license-status none';
-      input.value = '';
-      currentLicenseDiv.style.display = 'none';
-    }
-  }
-}
-
 function toggleLicenseMenu() {
   const licenseMenu = document.querySelector('.license-content');
   licenseMenu.style.display =
     licenseMenu.style.display === 'none' ? 'block' : 'none';
 }
 
-// Initialize when page loads
-function initializePage(initialData) {
-  if (initialData?.licenseInfo) {
-    updateUI(initialData);
-
-    // If we have a valid license, automatically fetch data
-    if (initialData.licenseInfo.hasLicense && initialData.licenseInfo.isValid) {
-      fetchApiData();
-    }
-  }
-}
-
 // Message listener for communication with extension
 window.addEventListener('message', (event) => {
   const message = event.data;
   switch (message.type) {
-    case 'updateData':
-      updateUI(message.data);
+    case 'initialData':
+      // Set initial license status on load
+      if (message.licenseKey) {
+        updateLicenseStatus(message.isValid, message.licenseKey, false);
+        // Auto-fetch data if license is valid
+        if (message.isValid) {
+          fetchApiData();
+        }
+      }
       break;
     case 'licenseValidated':
       updateLicenseStatus(message.isValid, message.licenseKey);
@@ -741,9 +708,6 @@ window.addEventListener('message', (event) => {
         message.error,
       );
       break;
-    case 'initialize':
-      initializePage(message.data);
-      break;
   }
 });
 
@@ -758,6 +722,8 @@ window.previewBlock = previewBlock;
 
 // Initialize UI when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Request initial data from extension
-  fetchApiData();
+  // Request initial license data from extension
+  vscode.postMessage({
+    type: 'requestInitialData',
+  });
 });

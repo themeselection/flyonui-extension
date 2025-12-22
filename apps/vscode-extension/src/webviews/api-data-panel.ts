@@ -28,6 +28,9 @@ export class ApiDataProvider implements vscode.WebviewViewProvider {
     // Listen for messages from the webview
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
+        case 'requestInitialData':
+          await this._sendInitialData();
+          break;
         case 'refresh':
           this._refreshData();
           break;
@@ -408,11 +411,34 @@ Follow the below instructions to integrate this component into the codebase:
     }
   }
 
-  private _refreshData() {
+  private async _refreshData() {
+    // Re-fetch the API data
+    await this._fetchFlyonuiData();
+  }
+
+  private async _sendInitialData() {
+    const licenseKey = this._getCurrentLicenseKey();
+
+    if (!licenseKey) {
+      // No license key, just send empty state
+      if (this._view) {
+        this._view.webview.postMessage({
+          type: 'initialData',
+          licenseKey: '',
+          isValid: false,
+        });
+      }
+      return;
+    }
+
+    // Validate the license key
+    const isValid = await this._validateLicenseKey(licenseKey);
+
     if (this._view) {
       this._view.webview.postMessage({
-        type: 'updateData',
-        data: this._fetchFlyonuiData(),
+        type: 'initialData',
+        licenseKey: licenseKey,
+        isValid: isValid,
       });
     }
   }
