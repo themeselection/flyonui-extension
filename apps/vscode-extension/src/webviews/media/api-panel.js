@@ -646,6 +646,7 @@ function updateLicenseStatus(isValid, licenseKey, resetButton = true) {
   const input = document.getElementById('license-key-input');
   const currentLicenseDiv = document.getElementById('license-current');
   const currentLicenseText = document.getElementById('current-license-text');
+  const licenseDescription = document.querySelector('.license-description');
 
   // Re-enable save button if requested
   if (resetButton) {
@@ -660,14 +661,26 @@ function updateLicenseStatus(isValid, licenseKey, resetButton = true) {
     input.value = licenseKey;
     currentLicenseDiv.style.display = 'block';
     currentLicenseText.textContent = licenseKey;
+    // Hide license description when license is valid
+    if (licenseDescription) {
+      licenseDescription.style.display = 'none';
+    }
   } else if (licenseKey) {
     statusElement.textContent = 'Invalid';
     statusElement.className = 'license-status invalid';
     currentLicenseDiv.style.display = 'none';
+    // Show license description when license is invalid
+    if (licenseDescription) {
+      licenseDescription.style.display = 'block';
+    }
   } else {
     statusElement.textContent = 'No License';
     statusElement.className = 'license-status none';
     currentLicenseDiv.style.display = 'none';
+    // Show license description when no license
+    if (licenseDescription) {
+      licenseDescription.style.display = 'block';
+    }
   }
 }
 
