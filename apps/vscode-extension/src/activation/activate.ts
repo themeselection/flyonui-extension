@@ -86,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const ide = getCurrentIDE();
     if (ide === 'UNKNOWN') {
       vscode.window.showInformationMessage(
-        'stagewise does not work for your current IDE.',
+        'Flyonui IDE Extension does not work for your current IDE.',
       );
       return;
     }
