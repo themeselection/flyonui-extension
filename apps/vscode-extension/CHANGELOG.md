@@ -1,5 +1,14 @@
 # Flyonui IDE Extension
 
+## 1.0.5
+
+- Fixed an issue with the IDE extension not loading properly in certain environments.
+
+## 1.0.4
+
+- Fixed UI related issues and improved the overall user experience.
+- Update storagekey with flyonui prefix
+
 ## 1.0.3
 
 - Fixed CORS issues affecting API calls and block searches.
